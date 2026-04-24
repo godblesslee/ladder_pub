@@ -1,16 +1,20 @@
 import Link from "next/link";
 
+import { EventCard } from "@/components/events/event-card";
 import { DashboardPreview } from "@/components/home/dashboard-preview";
 import { SectionHeader } from "@/components/shared/section-header";
+import { SourceBadge } from "@/components/shared/source-badge";
+import { getPublishedEvents } from "@/lib/data/events";
 import {
   appModules,
   implementationSteps,
   organizerNeeds,
   platformPrinciples,
-  sampleEvents,
 } from "@/lib/product";
 
-export default function Home() {
+export default async function Home() {
+  const { events, source } = await getPublishedEvents();
+
   return (
     <main className="grain min-h-screen pb-20">
       <section className="hero-grid overflow-hidden border-b border-border/80">
@@ -139,29 +143,12 @@ export default function Home() {
           title="首页会先呈现什么"
           description="这里用静态数据模拟了活动列表，后续接上 Supabase 后可以直接替换。"
         />
+        <div className="mt-8">
+          <SourceBadge source={source} />
+        </div>
         <div className="mt-8 grid gap-5 md:grid-cols-3">
-          {sampleEvents.map((event) => (
-            <article
-              key={event.title}
-              className="section-card rounded-[28px] p-6"
-            >
-              <div className="flex items-center justify-between">
-                <span className="rounded-full bg-surface-strong px-3 py-1 text-xs font-semibold text-accent">
-                  {event.status}
-                </span>
-                <span className="text-sm text-muted">{event.date}</span>
-              </div>
-              <h2 className="mt-5 text-2xl font-semibold text-foreground">
-                {event.title}
-              </h2>
-              <p className="mt-3 text-sm leading-7 text-muted">
-                {event.description}
-              </p>
-              <div className="mt-6 flex items-center justify-between text-sm text-muted">
-                <span>{event.location}</span>
-                <span>{event.beerCount} 款酒</span>
-              </div>
-            </article>
+          {events.map((event) => (
+            <EventCard key={event.id} event={event} />
           ))}
         </div>
       </section>
