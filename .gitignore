@@ -10,6 +10,7 @@ out/
 dist/
 coverage/
 .vercel/
+tsconfig.tsbuildinfo
 supabase/.temp/
 tmp_pdf/
 .swift-module-cache/

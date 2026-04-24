@@ -8,6 +8,8 @@
 - 信息架构与用户流
 - 数据模型与模板机制设计
 - 工程方案与开发建议
+- Next.js 工程骨架
+- Supabase 初始 schema 与 seed
 
 ## 文档目录
 
@@ -32,6 +34,34 @@
 - 数据库/鉴权/对象存储：Supabase
 - 部署：Vercel
 
+## 本地开发
+
+```bash
+npm install
+npm run dev
+```
+
+环境变量请参考：
+
+- [`.env.example`](./.env.example)
+
+数据库初始化文件：
+
+- [`supabase/migrations/20260424171000_initial_schema.sql`](./supabase/migrations/20260424171000_initial_schema.sql)
+- [`supabase/seed.sql`](./supabase/seed.sql)
+
 ## 当前状态
 
-当前仓库为设计阶段，尚未开始正式编码。
+当前仓库已经完成：
+
+- 设计文档基线
+- Next.js App Router 工程骨架
+- 用户端 / 后台路由占位
+- Supabase 初始 schema 草案
+
+下一步建议优先实现：
+
+1. 活动列表与活动详情数据接入
+2. 测评模板渲染器
+3. 酒款测评提交流程
+4. 后台模板与酒款管理
