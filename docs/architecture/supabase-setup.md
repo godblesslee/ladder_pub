@@ -85,3 +85,25 @@ npm run supabase:types
 - CLI 登录
 - `.env.local` 填值
 - 首次 `db push`
+
+## 6. 当前仓库补充说明
+
+当前仓库的 `package.json` 已将 `supabase:push` 调整为：
+
+```bash
+npx supabase db push --include-seed
+```
+
+这样会按官方 CLI 路径同时推送 migration 和 seed。
+
+如果远程命令卡在 `Initialising login role...`，优先检查这两个环境变量是否已在当前 shell 中设置：
+
+```bash
+SUPABASE_ACCESS_TOKEN
+SUPABASE_DB_PASSWORD
+```
+
+其中：
+
+- `SUPABASE_ACCESS_TOKEN` 用于 CLI 登录态
+- `SUPABASE_DB_PASSWORD` 用于远程数据库连接 / link / push 过程中的非交互认证
