@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getFallbackEventBySlug } from "@/lib/data/fallback-events";
 import { reviewTemplateSections } from "@/lib/review-template";
 
 const DEMO_PROFILE_ID = "77777777-7777-7777-7777-777777777777";
@@ -40,7 +41,24 @@ export async function getReviewPageData(slug: string, eventBeerId: string) {
     .single();
 
   if (error || !data) {
-    return null;
+    const fallbackEvent = getFallbackEventBySlug(slug);
+    const fallbackBeer = fallbackEvent?.beers.find((beer) => beer.id === eventBeerId);
+
+    if (!fallbackEvent || !fallbackBeer) {
+      return null;
+    }
+
+    return {
+      eventTitle: fallbackEvent.title,
+      eventSlug: fallbackEvent.slug,
+      eventBeerId,
+      beerName: fallbackBeer.productName,
+      breweryName: fallbackBeer.breweryName,
+      styleName: fallbackBeer.styleName,
+      abv: fallbackBeer.abv,
+      volumeMl: fallbackBeer.volumeMl,
+      sections: reviewTemplateSections,
+    } satisfies ReviewPageData;
   }
 
   const eventBeer = Array.isArray(data.event_beers)

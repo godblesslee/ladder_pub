@@ -12,7 +12,7 @@ export default async function EventsPage() {
         <PageIntro
           eyebrow="Events"
           title="活动列表"
-          description="这里将承接已上线活动、未来活动和活动详情入口。当前先用静态内容占位，后续接数据库。"
+          description="移动端优先展示最近可参与的场次，当前主推 5 月 1 日啤酒入门评测活动。"
         />
         <div className="mt-8">
           <SourceBadge source={source} />

@@ -1,15 +1,15 @@
 const previewColumns = [
   {
     title: "已上线活动",
-    items: ["比利时修道院风格夜", "山系 IPA 对照场", "六月盲评局"],
+    items: ["5 月 1 日啤酒入门评测活动", "山系 IPA 对照场", "六月盲评局"],
   },
   {
     title: "我参与的活动",
-    items: ["比利时修道院风格夜", "山系 IPA 对照场"],
+    items: ["5 月 1 日啤酒入门评测活动", "山系 IPA 对照场"],
   },
   {
     title: "我测评过的酒",
-    items: ["West Coast IPA 9.2", "Dubbel 8.7", "Pils 8.1"],
+    items: ["科罗娜 7.8", "柏龙小麦白啤酒 8.4", "社交 IPA 8.6"],
   },
 ];
 

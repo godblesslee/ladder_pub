@@ -141,7 +141,7 @@ export default async function Home() {
         <SectionHeader
           eyebrow="Preview"
           title="首页会先呈现什么"
-          description="这里用静态数据模拟了活动列表，后续接上 Supabase 后可以直接替换。"
+          description="这里先用 5 月 1 日入门场作为移动端主活动示例，后续接上 Supabase 后可以直接替换。"
         />
         <div className="mt-8">
           <SourceBadge source={source} />

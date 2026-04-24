@@ -47,28 +47,72 @@ export default async function EventDetailPage({
           />
         </div>
 
-        <section className="mt-10 section-card rounded-[30px] p-7">
-          <h2 className="text-2xl font-semibold">本场酒款</h2>
+        {event.theme || event.audience || event.schedule || event.sourceNote ? (
+          <section className="mt-8 grid gap-4 sm:grid-cols-2">
+            {event.theme ? (
+              <article className="section-card rounded-[24px] p-5">
+                <p className="text-sm font-semibold text-accent">活动主题</p>
+                <p className="mt-2 text-sm leading-7 text-muted">{event.theme}</p>
+              </article>
+            ) : null}
+            {event.audience ? (
+              <article className="section-card rounded-[24px] p-5">
+                <p className="text-sm font-semibold text-accent">适合谁来</p>
+                <p className="mt-2 text-sm leading-7 text-muted">{event.audience}</p>
+              </article>
+            ) : null}
+            {event.schedule ? (
+              <article className="section-card rounded-[24px] p-5">
+                <p className="text-sm font-semibold text-accent">现场节奏</p>
+                <p className="mt-2 text-sm leading-7 text-muted">{event.schedule}</p>
+              </article>
+            ) : null}
+            {event.sourceNote ? (
+              <article className="section-card rounded-[24px] p-5">
+                <p className="text-sm font-semibold text-accent">资料备注</p>
+                <p className="mt-2 text-sm leading-7 text-muted">{event.sourceNote}</p>
+              </article>
+            ) : null}
+          </section>
+        ) : null}
+
+        <section className="mt-10 section-card rounded-[24px] p-5 sm:rounded-[30px] sm:p-7">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-semibold">本场酒款</h2>
+              <p className="mt-2 text-sm text-muted">
+                移动端先按出杯顺序浏览，再逐杯进入评测。
+              </p>
+            </div>
+            <div className="rounded-2xl bg-surface-strong px-4 py-3 text-right">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted">
+                Flight
+              </p>
+              <p className="mt-1 text-xl font-semibold text-accent">
+                {event.beers.length} 杯
+              </p>
+            </div>
+          </div>
           <div className="mt-6 space-y-4">
             {event.beers.map((beer) => (
               <Link
                 key={beer.id}
                 href={`/events/${event.slug}/beers/${beer.id}`}
-                className="block rounded-[24px] border border-border bg-white/70 p-5 transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(94,67,39,0.1)]"
+                className="block rounded-[22px] border border-border bg-white/70 p-4 transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(94,67,39,0.1)] sm:rounded-[24px] sm:p-5"
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <p className="text-sm font-semibold text-accent">
                       第 {beer.servingOrder ?? "-"} 杯
                     </p>
-                    <h3 className="mt-2 text-xl font-semibold">
+                    <h3 className="mt-2 text-lg font-semibold sm:text-xl">
                       {beer.productName}
                     </h3>
                     <p className="mt-2 text-sm text-muted">
                       {beer.breweryName} · {beer.styleName}
                     </p>
                   </div>
-                  <div className="text-sm text-muted">
+                  <div className="flex items-center gap-4 text-sm text-muted sm:block">
                     {beer.abv ? <p>ABV {beer.abv}%</p> : null}
                     {beer.volumeMl ? <p>{beer.volumeMl}ml</p> : null}
                   </div>
@@ -76,6 +120,10 @@ export default async function EventDetailPage({
                 {beer.notes ? (
                   <p className="mt-4 text-sm leading-7 text-muted">{beer.notes}</p>
                 ) : null}
+                <div className="mt-4 flex items-center justify-between border-t border-border/80 pt-4 text-sm font-semibold text-accent">
+                  <span>进入这杯的评测</span>
+                  <span>开始</span>
+                </div>
               </Link>
             ))}
           </div>

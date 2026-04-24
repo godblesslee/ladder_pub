@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { sampleEvents } from "@/lib/product";
+import { fallbackEvents, getFallbackEventBySlug } from "@/lib/data/fallback-events";
 
 export type EventListItem = {
   id: string;
@@ -31,6 +31,10 @@ export type EventDetail = {
   date: string;
   location: string;
   status: string;
+  theme: string | null;
+  audience: string | null;
+  schedule: string | null;
+  sourceNote: string | null;
   beers: EventBeerListItem[];
 };
 
@@ -104,10 +108,15 @@ export async function getPublishedEvents(): Promise<{
     };
   } catch {
     return {
-      events: sampleEvents.map((event, index) => ({
-        id: `fallback-${index + 1}`,
-        slug: undefined,
-        ...event,
+      events: fallbackEvents.map((event) => ({
+        id: event.id,
+        slug: event.slug,
+        title: event.title,
+        description: event.description,
+        date: event.date,
+        location: event.location,
+        beerCount: event.beerCount,
+        status: event.status,
       })),
       source: "fallback",
     };
@@ -161,6 +170,10 @@ export async function getEventBySlug(slug: string): Promise<{
         date: formatDate(data.start_at),
         location: data.location ?? "地点待定",
         status: mapStatus(data.status),
+        theme: null,
+        audience: null,
+        schedule: null,
+        sourceNote: null,
         beers:
           data.event_beers?.map((item) => {
             const beer = Array.isArray(item.beers) ? item.beers[0] : item.beers;
@@ -180,7 +193,9 @@ export async function getEventBySlug(slug: string): Promise<{
       source: "database",
     };
   } catch {
-    if (slug !== "first-digital-tasting-session") {
+    const fallbackEvent = getFallbackEventBySlug(slug);
+
+    if (!fallbackEvent) {
       return {
         event: null,
         source: "fallback",
@@ -189,26 +204,27 @@ export async function getEventBySlug(slug: string): Promise<{
 
     return {
       event: {
-        id: "fallback-event-1",
-        slug,
-        title: "首场数字化品鉴测试场",
-        description:
-          "用于验证活动列表、Supabase 数据读取和后续测评流程的第一场测试活动。",
-        date: "2026/05/18",
-        location: "小酒馆测试场",
-        status: "已上线",
-        beers: [
-          {
-            id: "fallback-beer-1",
-            servingOrder: 1,
-            notes: "首杯示例酒款",
-            breweryName: "Misty Range Brewing",
-            productName: "Signal Peak West Coast IPA",
-            styleName: "West Coast IPA",
-            abv: 6.8,
-            volumeMl: 330,
-          },
-        ],
+        id: fallbackEvent.id,
+        slug: fallbackEvent.slug,
+        title: fallbackEvent.title,
+        description: fallbackEvent.description,
+        date: fallbackEvent.date,
+        location: fallbackEvent.location,
+        status: fallbackEvent.status,
+        theme: fallbackEvent.theme,
+        audience: fallbackEvent.audience,
+        schedule: fallbackEvent.schedule,
+        sourceNote: fallbackEvent.sourceNote,
+        beers: fallbackEvent.beers.map((beer) => ({
+          id: beer.id,
+          servingOrder: beer.servingOrder,
+          notes: beer.notes,
+          breweryName: beer.breweryName,
+          productName: beer.productName,
+          styleName: beer.styleName,
+          abv: beer.abv,
+          volumeMl: beer.volumeMl,
+        })),
       },
       source: "fallback",
     };

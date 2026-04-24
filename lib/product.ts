@@ -1,3 +1,5 @@
+import { fallbackEvents } from "@/lib/data/fallback-events";
+
 export const platformPrinciples = [
   "模板配置化优先",
   "记录感受而非分项打分",
@@ -69,29 +71,11 @@ export const implementationSteps = [
   },
 ];
 
-export const sampleEvents = [
-  {
-    title: "比利时修道院风格夜",
-    description: "围绕 Dubbel、Tripel、Quadrupel 做对照品鉴，重点观察酯香与酒精融合度。",
-    date: "2026-05-10",
-    location: "小酒馆静安店",
-    beerCount: 6,
-    status: "即将开始",
-  },
-  {
-    title: "山系 IPA 对照场",
-    description: "同场对比 West Coast、Hazy 与 Cold IPA，关注苦度、香气层次和收口。",
-    date: "2026-05-24",
-    location: "小酒馆长宁店",
-    beerCount: 8,
-    status: "已上线",
-  },
-  {
-    title: "六月盲评局",
-    description: "以盲评方式记录用户第一感受，强化模板作为现场记录工具的价值。",
-    date: "2026-06-07",
-    location: "小酒馆徐汇店",
-    beerCount: 5,
-    status: "筹备中",
-  },
-];
+export const sampleEvents = fallbackEvents.map((event) => ({
+  title: event.title,
+  description: event.description,
+  date: event.date,
+  location: event.location,
+  beerCount: event.beerCount,
+  status: event.status,
+}));
