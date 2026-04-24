@@ -128,8 +128,9 @@ values (
   '33333333-3333-3333-3333-333333333333',
   '2026-04-24T10:00:00Z'
 )
-on conflict (slug) do update set
+on conflict (id) do update set
   title = excluded.title,
+  slug = excluded.slug,
   description = excluded.description,
   location = excluded.location,
   start_at = excluded.start_at,
@@ -280,7 +281,9 @@ values
     '55555555-5555-5555-5555-555555555558',
     8,
     '最后以桶酸收尾，感受酸度、木桶感和复杂发酵风味的层次。'
-  )
-on conflict (event_id, beer_id) do update set
+)
+on conflict (id) do update set
+  event_id = excluded.event_id,
+  beer_id = excluded.beer_id,
   serving_order = excluded.serving_order,
   notes = excluded.notes;
