@@ -8,7 +8,13 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "supabase:init": "npx supabase init",
+    "supabase:start": "npx supabase start",
+    "supabase:stop": "npx supabase stop",
+    "supabase:link": "npx supabase link --project-ref dysswcyynltekxclznvi",
+    "supabase:push": "npx supabase db push",
+    "supabase:types": "npx supabase gen types typescript --linked > types/database.generated.ts"
   },
   "dependencies": {
     "next": "16.2.4",

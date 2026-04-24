@@ -18,6 +18,7 @@
 - [测评模板草案](./docs/product/review-template-draft.md)
 - [数据模型设计](./docs/architecture/data-model.md)
 - [工程方案](./docs/architecture/engineering-plan.md)
+- [Supabase 接入说明](./docs/architecture/supabase-setup.md)
 - [源材料记录](./docs/notes/source-materials.md)
 
 ## 项目目标
@@ -44,6 +45,7 @@ npm run dev
 环境变量请参考：
 
 - [`.env.example`](./.env.example)
+- [Supabase 接入说明](./docs/architecture/supabase-setup.md)
 
 数据库初始化文件：
 
