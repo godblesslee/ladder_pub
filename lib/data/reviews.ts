@@ -1,6 +1,10 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getFallbackEventBySlug } from "@/lib/data/fallback-events";
-import { reviewTemplateSections } from "@/lib/review-template";
+import {
+  parseReviewTemplateSections,
+  reviewTemplateSections,
+  type ReviewSection,
+} from "@/lib/review-template";
 
 const DEMO_PROFILE_ID = "77777777-7777-7777-7777-777777777777";
 
@@ -13,7 +17,7 @@ export type ReviewPageData = {
   styleName: string;
   abv: number | null;
   volumeMl: number | null;
-  sections: typeof reviewTemplateSections;
+  sections: ReviewSection[];
 };
 
 export async function getReviewPageData(slug: string, eventBeerId: string) {
@@ -24,6 +28,9 @@ export async function getReviewPageData(slug: string, eventBeerId: string) {
       `
         title,
         slug,
+        template_version:review_template_versions (
+          snapshot_json
+        ),
         event_beers!inner (
           id,
           beers (
@@ -65,6 +72,13 @@ export async function getReviewPageData(slug: string, eventBeerId: string) {
     ? data.event_beers[0]
     : data.event_beers;
   const beer = Array.isArray(eventBeer?.beers) ? eventBeer.beers[0] : eventBeer?.beers;
+  const templateVersion = Array.isArray(data.template_version)
+    ? data.template_version[0]
+    : data.template_version;
+  const sections =
+    (templateVersion?.snapshot_json
+      ? parseReviewTemplateSections(templateVersion.snapshot_json)
+      : null) ?? reviewTemplateSections;
 
   return {
     eventTitle: data.title,
@@ -75,7 +89,7 @@ export async function getReviewPageData(slug: string, eventBeerId: string) {
     styleName: beer?.style_name ?? "风格待定",
     abv: beer?.abv ?? null,
     volumeMl: beer?.volume_ml ?? null,
-    sections: reviewTemplateSections,
+    sections,
   } satisfies ReviewPageData;
 }
 

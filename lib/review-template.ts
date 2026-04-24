@@ -1,4 +1,5 @@
 import type { ReviewFieldType } from "@/types/domain";
+import type { Json } from "@/types/database.generated";
 
 export type ReviewField = {
   key: string;
@@ -12,6 +13,100 @@ export type ReviewSection = {
   title: string;
   fields: ReviewField[];
 };
+
+function isFieldType(value: unknown): value is ReviewFieldType {
+  return (
+    value === "single_select" ||
+    value === "multi_select" ||
+    value === "text" ||
+    value === "textarea" ||
+    value === "score"
+  );
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+
+function isNonNullable<T>(value: T): value is NonNullable<T> {
+  return value !== null && value !== undefined;
+}
+
+export function parseReviewTemplateSections(snapshot: Json): ReviewSection[] | null {
+  if (!snapshot || Array.isArray(snapshot) || typeof snapshot !== "object") {
+    return null;
+  }
+
+  const sections = snapshot.sections;
+
+  if (!Array.isArray(sections)) {
+    return null;
+  }
+
+  const parsedSections = sections
+    .map((section) => {
+      if (!section || Array.isArray(section) || typeof section !== "object") {
+        return null;
+      }
+
+      const key = section.key;
+      const title = section.title;
+      const fields = section.fields;
+
+      if (
+        typeof key !== "string" ||
+        typeof title !== "string" ||
+        !Array.isArray(fields)
+      ) {
+        return null;
+      }
+
+      const parsedFields = fields
+        .map((field) => {
+          if (!field || Array.isArray(field) || typeof field !== "object") {
+            return null;
+          }
+
+          const fieldKey = field.key;
+          const label = field.label;
+          const type = field.type;
+          const options = field.options;
+
+          if (
+            typeof fieldKey !== "string" ||
+            typeof label !== "string" ||
+            !isFieldType(type)
+          ) {
+            return null;
+          }
+
+          const parsedField: ReviewField = {
+            key: fieldKey,
+            label,
+            type,
+            options: isStringArray(options) ? options : undefined,
+          };
+
+          return parsedField;
+        })
+        .filter(isNonNullable);
+
+      if (parsedFields.length === 0) {
+        return null;
+      }
+
+      const parsedSection: ReviewSection = {
+        key,
+        title,
+        fields: parsedFields,
+      };
+
+      return parsedSection;
+    })
+    .filter(isNonNullable);
+
+  return parsedSections.length > 0 ? parsedSections : null;
+}
 
 export const reviewTemplateSections: ReviewSection[] = [
   {
