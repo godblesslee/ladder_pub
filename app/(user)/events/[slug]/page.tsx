@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { PageIntro } from "@/components/shared/page-intro";
@@ -50,9 +51,10 @@ export default async function EventDetailPage({
           <h2 className="text-2xl font-semibold">本场酒款</h2>
           <div className="mt-6 space-y-4">
             {event.beers.map((beer) => (
-              <article
+              <Link
                 key={beer.id}
-                className="rounded-[24px] border border-border bg-white/70 p-5"
+                href={`/events/${event.slug}/beers/${beer.id}`}
+                className="block rounded-[24px] border border-border bg-white/70 p-5 transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(94,67,39,0.1)]"
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
@@ -74,7 +76,7 @@ export default async function EventDetailPage({
                 {beer.notes ? (
                   <p className="mt-4 text-sm leading-7 text-muted">{beer.notes}</p>
                 ) : null}
-              </article>
+              </Link>
             ))}
           </div>
         </section>
