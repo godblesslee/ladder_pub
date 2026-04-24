@@ -9,14 +9,14 @@ export function SourceBadge({
 }: SourceBadgeProps) {
   if (source === "database") {
     return (
-      <p className="rounded-2xl border border-border bg-white/70 px-4 py-3 text-sm text-success">
+      <p className="rounded-[20px] border border-white/8 bg-white/4 px-4 py-3 text-sm text-success">
         当前内容来自 Supabase 远程数据。
       </p>
     );
   }
 
   return (
-    <p className="rounded-2xl border border-border bg-white/70 px-4 py-3 text-sm text-muted">
+    <p className="rounded-[20px] border border-white/8 bg-white/4 px-4 py-3 text-sm leading-6 text-muted">
       {fallbackLabel}
     </p>
   );

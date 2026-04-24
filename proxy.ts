@@ -1,0 +1,22 @@
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+
+export function proxy(request: NextRequest) {
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-current-pathname", request.nextUrl.pathname);
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+}
+
+export const config = {
+  matcher: [
+    "/",
+    "/events/:path*",
+    "/my-events/:path*",
+    "/my-beers/:path*",
+  ],
+};

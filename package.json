@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:lan": "next dev --hostname 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
@@ -13,7 +14,7 @@
     "supabase:start": "npx supabase start",
     "supabase:stop": "npx supabase stop",
     "supabase:link": "npx supabase link --project-ref dysswcyynltekxclznvi",
-    "supabase:push": "npx supabase db push",
+    "supabase:push": "npx supabase db push --include-seed",
     "supabase:types": "npx supabase gen types typescript --linked > types/database.generated.ts"
   },
   "dependencies": {

@@ -218,6 +218,9 @@ on conflict (id) do update set
   style_name = excluded.style_name,
   description = excluded.description;
 
+delete from public.event_beers
+where event_id = '44444444-4444-4444-4444-444444444444';
+
 insert into public.event_beers (
   id,
   event_id,
@@ -283,7 +286,5 @@ values
     '最后以桶酸收尾，感受酸度、木桶感和复杂发酵风味的层次。'
 )
 on conflict (id) do update set
-  event_id = excluded.event_id,
-  beer_id = excluded.beer_id,
   serving_order = excluded.serving_order,
   notes = excluded.notes;

@@ -7,17 +7,17 @@ export default async function EventsPage() {
   const { events, source } = await getPublishedEvents();
 
   return (
-    <main className="grain min-h-screen py-14">
-      <div className="page-shell">
+    <main className="grain min-h-screen py-8">
+      <div className="page-shell px-1">
         <PageIntro
           eyebrow="Events"
           title="活动列表"
-          description="移动端优先展示最近可参与的场次，当前主推 5 月 1 日啤酒入门评测活动。"
+          description="查看当前可参与的场次，按活动进入具体酒单和测评入口。"
         />
         <div className="mt-8">
           <SourceBadge source={source} />
         </div>
-        <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-6 grid gap-4">
           {events.map((event) => (
             <EventCard key={event.id} event={event} />
           ))}

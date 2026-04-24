@@ -11,7 +11,7 @@ export function PageIntro({ eyebrow, title, description }: PageIntroProps) {
       <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-5xl">
         {title}
       </h1>
-      <p className="text-base leading-7 text-muted sm:text-lg sm:leading-8">
+      <p className="max-w-2xl text-base leading-7 text-muted sm:text-lg sm:leading-8">
         {description}
       </p>
     </header>

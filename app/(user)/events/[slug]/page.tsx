@@ -22,8 +22,8 @@ export default async function EventDetailPage({
   }
 
   return (
-    <main className="grain min-h-screen py-14">
-      <div className="page-shell">
+    <main className="grain min-h-screen py-8">
+      <div className="page-shell px-1">
         <PageIntro
           eyebrow="Event Detail"
           title={event.title}
@@ -31,11 +31,11 @@ export default async function EventDetailPage({
         />
 
         <div className="mt-6 flex flex-wrap gap-3 text-sm text-muted">
-          <span className="rounded-full bg-white/80 px-4 py-2">{event.date}</span>
-          <span className="rounded-full bg-white/80 px-4 py-2">
+          <span className="rounded-full bg-white/4 px-4 py-2">{event.date}</span>
+          <span className="rounded-full bg-white/4 px-4 py-2">
             {event.location}
           </span>
-          <span className="rounded-full bg-surface-strong px-4 py-2 text-accent">
+          <span className="rounded-full bg-accent-soft px-4 py-2 text-accent-strong">
             {event.status}
           </span>
         </div>
@@ -51,25 +51,25 @@ export default async function EventDetailPage({
           <section className="mt-8 grid gap-4 sm:grid-cols-2">
             {event.theme ? (
               <article className="section-card rounded-[24px] p-5">
-                <p className="text-sm font-semibold text-accent">活动主题</p>
+                <p className="text-sm font-semibold text-accent-strong">活动主题</p>
                 <p className="mt-2 text-sm leading-7 text-muted">{event.theme}</p>
               </article>
             ) : null}
             {event.audience ? (
               <article className="section-card rounded-[24px] p-5">
-                <p className="text-sm font-semibold text-accent">适合谁来</p>
+                <p className="text-sm font-semibold text-accent-strong">适合谁来</p>
                 <p className="mt-2 text-sm leading-7 text-muted">{event.audience}</p>
               </article>
             ) : null}
             {event.schedule ? (
               <article className="section-card rounded-[24px] p-5">
-                <p className="text-sm font-semibold text-accent">现场节奏</p>
+                <p className="text-sm font-semibold text-accent-strong">现场节奏</p>
                 <p className="mt-2 text-sm leading-7 text-muted">{event.schedule}</p>
               </article>
             ) : null}
             {event.sourceNote ? (
               <article className="section-card rounded-[24px] p-5">
-                <p className="text-sm font-semibold text-accent">资料备注</p>
+                <p className="text-sm font-semibold text-accent-strong">资料备注</p>
                 <p className="mt-2 text-sm leading-7 text-muted">{event.sourceNote}</p>
               </article>
             ) : null}
@@ -88,7 +88,7 @@ export default async function EventDetailPage({
               <p className="text-xs uppercase tracking-[0.18em] text-muted">
                 Flight
               </p>
-              <p className="mt-1 text-xl font-semibold text-accent">
+              <p className="mt-1 text-xl font-semibold text-accent-strong">
                 {event.beers.length} 杯
               </p>
             </div>
@@ -98,11 +98,11 @@ export default async function EventDetailPage({
               <Link
                 key={beer.id}
                 href={`/events/${event.slug}/beers/${beer.id}`}
-                className="block rounded-[22px] border border-border bg-white/70 p-4 transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(94,67,39,0.1)] sm:rounded-[24px] sm:p-5"
+                className="block rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(43,38,34,0.98),rgba(32,28,25,0.98))] p-4 shadow-[0_20px_40px_rgba(0,0,0,0.22)] transition hover:-translate-y-0.5 hover:border-white/12 hover:bg-[linear-gradient(180deg,rgba(52,46,41,0.98),rgba(36,31,28,0.98))] sm:p-5"
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-accent">
+                    <p className="text-sm font-semibold text-accent-strong">
                       第 {beer.servingOrder ?? "-"} 杯
                     </p>
                     <h3 className="mt-2 text-lg font-semibold sm:text-xl">
@@ -120,9 +120,9 @@ export default async function EventDetailPage({
                 {beer.notes ? (
                   <p className="mt-4 text-sm leading-7 text-muted">{beer.notes}</p>
                 ) : null}
-                <div className="mt-4 flex items-center justify-between border-t border-border/80 pt-4 text-sm font-semibold text-accent">
+                <div className="mt-4 flex items-center justify-between border-t border-border/80 pt-4 text-sm font-semibold text-accent-strong">
                   <span>进入这杯的评测</span>
-                  <span>开始</span>
+                  <span>›</span>
                 </div>
               </Link>
             ))}

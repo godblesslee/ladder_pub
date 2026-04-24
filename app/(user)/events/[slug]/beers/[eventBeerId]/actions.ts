@@ -47,7 +47,7 @@ export async function submitReviewAction(
 
     return {
       success: true,
-      message: "测评已保存到 Supabase（当前为 demo 提交链路）。",
+      message: "测评已保存到 Supabase，再次进入时会自动回填。",
     };
   } catch (error) {
     return {

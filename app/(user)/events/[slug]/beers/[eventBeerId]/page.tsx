@@ -21,8 +21,8 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
   }
 
   return (
-    <main className="grain min-h-screen py-14">
-      <div className="page-shell">
+    <main className="grain min-h-screen py-8">
+      <div className="page-shell px-1">
         <PageIntro
           eyebrow="Beer Review"
           title={data.beerName}
@@ -30,16 +30,16 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
         />
 
         <div className="mt-6 flex flex-wrap gap-3 text-sm text-muted">
-          <span className="rounded-full bg-white/80 px-4 py-2">
+          <span className="rounded-full bg-white/4 px-4 py-2">
             所属活动：{data.eventTitle}
           </span>
           {data.abv ? (
-            <span className="rounded-full bg-white/80 px-4 py-2">
+            <span className="rounded-full bg-white/4 px-4 py-2">
               ABV {data.abv}%
             </span>
           ) : null}
           {data.volumeMl ? (
-            <span className="rounded-full bg-white/80 px-4 py-2">
+            <span className="rounded-full bg-white/4 px-4 py-2">
               {data.volumeMl}ml
             </span>
           ) : null}
@@ -50,6 +50,9 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
             eventSlug={data.eventSlug}
             eventBeerId={data.eventBeerId}
             sections={data.sections}
+            initialValues={data.initialValues}
+            isReadOnly={data.isReadOnly}
+            reviewStatusLabel={data.reviewStatusLabel}
           />
         </div>
       </div>

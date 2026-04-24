@@ -18,36 +18,330 @@ export type ReviewPageData = {
   abv: number | null;
   volumeMl: number | null;
   sections: ReviewSection[];
+  initialValues: ReviewFormInitialValues;
+  isReadOnly: boolean;
+  reviewStatusLabel: string | null;
 };
 
-export async function getReviewPageData(slug: string, eventBeerId: string) {
+export type ReviewFormInitialValues = {
+  totalScore: number | null;
+  publicNote: string;
+  answers: Record<string, string | string[]>;
+};
+
+type SavedDemoReview = ReviewFormInitialValues & {
+  isReadOnly: boolean;
+  reviewStatusLabel: string | null;
+};
+
+export type MyBeerReviewItem = {
+  id: string;
+  beerName: string;
+  breweryName: string;
+  styleName: string;
+  eventTitle: string;
+  eventSlug: string | null;
+  eventBeerId: string;
+  totalScore: number | null;
+  publicNote: string;
+  submittedAtLabel: string;
+  statusLabel: string;
+};
+
+export type MyEventItem = {
+  id: string;
+  title: string;
+  slug: string | null;
+  location: string;
+  dateLabel: string;
+  progressLabel: string;
+  reviewCount: number;
+  beerCount: number;
+  statusLabel: string;
+};
+
+const emptyInitialValues: ReviewFormInitialValues = {
+  totalScore: null,
+  publicNote: "",
+  answers: {},
+};
+
+function formatReviewDate(input: string | null | undefined) {
+  if (!input) {
+    return "刚刚保存";
+  }
+
+  return new Intl.DateTimeFormat("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(input));
+}
+
+function mapReviewStatus(status: string | null | undefined) {
+  switch (status) {
+    case "submitted":
+      return "已提交";
+    case "locked":
+      return "已锁定";
+    default:
+      return "草稿";
+  }
+}
+
+async function getSavedDemoReview(eventBeerId: string): Promise<SavedDemoReview> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("events")
-    .select(
-      `
-        title,
-        slug,
-        template_version:review_template_versions (
-          snapshot_json
-        ),
-        event_beers!inner (
+  const { data: review, error: reviewError } = await supabase
+    .from("reviews")
+    .select("id, total_score, public_note, status")
+    .eq("user_id", DEMO_PROFILE_ID)
+    .eq("event_beer_id", eventBeerId)
+    .maybeSingle();
+
+  if (reviewError || !review) {
+    return {
+      ...emptyInitialValues,
+      isReadOnly: false,
+      reviewStatusLabel: null,
+    };
+  }
+
+  const { data: answers, error: answersError } = await supabase
+    .from("review_answers")
+    .select("field_key, value_text, value_json")
+    .eq("review_id", review.id);
+
+  if (answersError) {
+    return {
+      totalScore: review.total_score,
+      publicNote: review.public_note ?? "",
+      answers: {},
+      isReadOnly: review.status === "submitted" || review.status === "locked",
+      reviewStatusLabel: mapReviewStatus(review.status),
+    };
+  }
+
+  const normalizedAnswers: Record<string, string | string[]> = {};
+
+  for (const answer of answers) {
+    if (Array.isArray(answer.value_json)) {
+      const values = answer.value_json.filter(
+        (value): value is string => typeof value === "string",
+      );
+
+      if (values.length > 0) {
+        normalizedAnswers[answer.field_key] = values;
+      }
+
+      continue;
+    }
+
+    if (typeof answer.value_text === "string" && answer.value_text.trim().length > 0) {
+      normalizedAnswers[answer.field_key] = answer.value_text;
+    }
+  }
+
+  return {
+    totalScore: review.total_score,
+    publicNote: review.public_note ?? "",
+    answers: normalizedAnswers,
+    isReadOnly: review.status === "submitted" || review.status === "locked",
+    reviewStatusLabel: mapReviewStatus(review.status),
+  };
+}
+
+export async function getMyBeerReviews(): Promise<MyBeerReviewItem[]> {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from("reviews")
+      .select(
+        `
           id,
+          event_beer_id,
+          total_score,
+          public_note,
+          status,
+          submitted_at,
+          updated_at,
+          events (
+            title,
+            slug
+          ),
           beers (
             brewery_name,
             product_name,
-            style_name,
-            abv,
-            volume_ml
+            style_name
           )
-        )
-      `,
-    )
-    .eq("slug", slug)
-    .eq("event_beers.id", eventBeerId)
-    .single();
+        `,
+      )
+      .eq("user_id", DEMO_PROFILE_ID)
+      .order("updated_at", { ascending: false });
 
-  if (error || !data) {
+    if (error || !data) {
+      return [];
+    }
+
+    return data.map((review) => {
+      const event = Array.isArray(review.events) ? review.events[0] : review.events;
+      const beer = Array.isArray(review.beers) ? review.beers[0] : review.beers;
+
+      return {
+        id: review.id,
+        beerName: beer?.product_name ?? "未知酒款",
+        breweryName: beer?.brewery_name ?? "未知厂牌",
+        styleName: beer?.style_name ?? "风格待定",
+        eventTitle: event?.title ?? "未命名活动",
+        eventSlug: event?.slug ?? null,
+        eventBeerId: review.event_beer_id,
+        totalScore: review.total_score,
+        publicNote: review.public_note ?? "",
+        submittedAtLabel: formatReviewDate(review.submitted_at ?? review.updated_at),
+        statusLabel: mapReviewStatus(review.status),
+      } satisfies MyBeerReviewItem;
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function getMyEvents(): Promise<MyEventItem[]> {
+  try {
+    const supabase = createAdminClient();
+    const { data: participants, error: participantsError } = await supabase
+      .from("event_participants")
+      .select(
+        `
+          event_id,
+          events (
+            id,
+            title,
+            slug,
+            location,
+            start_at,
+            status,
+            event_beers ( id )
+          )
+        `,
+      )
+      .eq("user_id", DEMO_PROFILE_ID)
+      .eq("participation_status", "joined");
+
+    if (participantsError || !participants) {
+      return [];
+    }
+
+    const { data: reviews, error: reviewsError } = await supabase
+      .from("reviews")
+      .select("event_id")
+      .eq("user_id", DEMO_PROFILE_ID);
+
+    const reviewCounts = new Map<string, number>();
+
+    if (!reviewsError && reviews) {
+      for (const review of reviews) {
+        reviewCounts.set(review.event_id, (reviewCounts.get(review.event_id) ?? 0) + 1);
+      }
+    }
+
+    return participants
+      .map((participant) => {
+        const event = Array.isArray(participant.events)
+          ? participant.events[0]
+          : participant.events;
+
+        if (!event) {
+          return null;
+        }
+
+        const beerCount = event.event_beers?.length ?? 0;
+        const reviewCount = reviewCounts.get(event.id) ?? 0;
+
+        return {
+          id: event.id,
+          title: event.title,
+          slug: event.slug,
+          location: event.location ?? "地点待定",
+          dateLabel: formatReviewDate(event.start_at),
+          progressLabel:
+            beerCount > 0 ? `已完成 ${reviewCount} / ${beerCount}` : "等待酒单",
+          reviewCount,
+          beerCount,
+          statusLabel: mapReviewStatus(event.status === "ended" ? "locked" : "submitted"),
+        } satisfies MyEventItem;
+      })
+      .filter((event): event is MyEventItem => event !== null);
+  } catch {
+    return [];
+  }
+}
+
+export async function getReviewPageData(slug: string, eventBeerId: string) {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from("events")
+      .select(
+        `
+          title,
+          slug,
+          template_version:review_template_versions (
+            snapshot_json
+          ),
+          event_beers!inner (
+            id,
+            beers (
+              brewery_name,
+              product_name,
+              style_name,
+              abv,
+              volume_ml
+            )
+          )
+        `,
+      )
+      .eq("slug", slug)
+      .eq("event_beers.id", eventBeerId)
+      .single();
+
+    if (error || !data) {
+      throw error ?? new Error("Event not found.");
+    }
+
+    const eventBeer = Array.isArray(data.event_beers)
+      ? data.event_beers[0]
+      : data.event_beers;
+    const beer = Array.isArray(eventBeer?.beers) ? eventBeer.beers[0] : eventBeer?.beers;
+    const templateVersion = Array.isArray(data.template_version)
+      ? data.template_version[0]
+      : data.template_version;
+    const sections =
+      (templateVersion?.snapshot_json
+        ? parseReviewTemplateSections(templateVersion.snapshot_json)
+        : null) ?? reviewTemplateSections;
+    const savedReview = await getSavedDemoReview(eventBeerId);
+
+    return {
+      eventTitle: data.title,
+      eventSlug: data.slug,
+      eventBeerId,
+      beerName: beer?.product_name ?? "未知酒款",
+      breweryName: beer?.brewery_name ?? "未知厂牌",
+      styleName: beer?.style_name ?? "风格待定",
+      abv: beer?.abv ?? null,
+      volumeMl: beer?.volume_ml ?? null,
+      sections,
+      initialValues: {
+        totalScore: savedReview.totalScore,
+        publicNote: savedReview.publicNote,
+        answers: savedReview.answers,
+      },
+      isReadOnly: savedReview.isReadOnly,
+      reviewStatusLabel: savedReview.reviewStatusLabel,
+    } satisfies ReviewPageData;
+  } catch {
     const fallbackEvent = getFallbackEventBySlug(slug);
     const fallbackBeer = fallbackEvent?.beers.find((beer) => beer.id === eventBeerId);
 
@@ -65,32 +359,11 @@ export async function getReviewPageData(slug: string, eventBeerId: string) {
       abv: fallbackBeer.abv,
       volumeMl: fallbackBeer.volumeMl,
       sections: reviewTemplateSections,
+      initialValues: emptyInitialValues,
+      isReadOnly: false,
+      reviewStatusLabel: null,
     } satisfies ReviewPageData;
   }
-
-  const eventBeer = Array.isArray(data.event_beers)
-    ? data.event_beers[0]
-    : data.event_beers;
-  const beer = Array.isArray(eventBeer?.beers) ? eventBeer.beers[0] : eventBeer?.beers;
-  const templateVersion = Array.isArray(data.template_version)
-    ? data.template_version[0]
-    : data.template_version;
-  const sections =
-    (templateVersion?.snapshot_json
-      ? parseReviewTemplateSections(templateVersion.snapshot_json)
-      : null) ?? reviewTemplateSections;
-
-  return {
-    eventTitle: data.title,
-    eventSlug: data.slug,
-    eventBeerId,
-    beerName: beer?.product_name ?? "未知酒款",
-    breweryName: beer?.brewery_name ?? "未知厂牌",
-    styleName: beer?.style_name ?? "风格待定",
-    abv: beer?.abv ?? null,
-    volumeMl: beer?.volume_ml ?? null,
-    sections,
-  } satisfies ReviewPageData;
 }
 
 export async function saveDemoReview(input: {
@@ -142,6 +415,7 @@ export async function saveDemoReview(input: {
         public_note: input.publicNote || null,
         status: "submitted",
         submitted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       },
       {
         onConflict: "user_id,event_id,event_beer_id",
