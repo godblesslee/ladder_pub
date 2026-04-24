@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import type { EventListItem } from "@/lib/data/events";
 
 type EventCardProps = {
@@ -5,8 +7,8 @@ type EventCardProps = {
 };
 
 export function EventCard({ event }: EventCardProps) {
-  return (
-    <article className="section-card rounded-[28px] p-6">
+  const content = (
+    <article className="section-card rounded-[28px] p-6 transition hover:-translate-y-0.5 hover:shadow-[0_24px_60px_rgba(94,67,39,0.12)]">
       <div className="flex items-center justify-between">
         <span className="rounded-full bg-surface-strong px-3 py-1 text-xs font-semibold text-accent">
           {event.status}
@@ -23,4 +25,10 @@ export function EventCard({ event }: EventCardProps) {
       </div>
     </article>
   );
+
+  if (!event.slug) {
+    return content;
+  }
+
+  return <Link href={`/events/${event.slug}`}>{content}</Link>;
 }
