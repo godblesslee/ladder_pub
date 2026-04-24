@@ -1,5 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
 import { fallbackEvents, getFallbackEventBySlug } from "@/lib/data/fallback-events";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type EventListItem = {
   id: string;
@@ -68,7 +68,7 @@ export async function getPublishedEvents(): Promise<{
   source: "database" | "fallback";
 }> {
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data, error } = await supabase
       .from("events")
       .select(
@@ -127,8 +127,10 @@ export async function getEventBySlug(slug: string): Promise<{
   event: EventDetail | null;
   source: "database" | "fallback";
 }> {
+  const fallbackEvent = getFallbackEventBySlug(slug);
+
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data, error } = await supabase
       .from("events")
       .select(
@@ -170,10 +172,10 @@ export async function getEventBySlug(slug: string): Promise<{
         date: formatDate(data.start_at),
         location: data.location ?? "地点待定",
         status: mapStatus(data.status),
-        theme: null,
-        audience: null,
-        schedule: null,
-        sourceNote: null,
+        theme: fallbackEvent?.theme ?? null,
+        audience: fallbackEvent?.audience ?? null,
+        schedule: fallbackEvent?.schedule ?? null,
+        sourceNote: fallbackEvent?.sourceNote ?? null,
         beers:
           data.event_beers?.map((item) => {
             const beer = Array.isArray(item.beers) ? item.beers[0] : item.beers;
@@ -193,8 +195,6 @@ export async function getEventBySlug(slug: string): Promise<{
       source: "database",
     };
   } catch {
-    const fallbackEvent = getFallbackEventBySlug(slug);
-
     if (!fallbackEvent) {
       return {
         event: null,
