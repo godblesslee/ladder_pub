@@ -1,47 +1,56 @@
-import { PageIntro } from "@/components/shared/page-intro";
+import Link from "next/link";
 
-const adminCards = [
-  {
-    title: "活动管理",
-    description: "创建活动、设置时间地点、上线状态与活动封面。",
-  },
-  {
-    title: "酒款数据库",
-    description: "维护厂牌、名称、风格、容量、国别、ABV 与图片。",
-  },
-  {
-    title: "模板管理",
-    description: "按分组配置测评字段、选项、排序与是否必填。",
-  },
-  {
-    title: "测评记录",
-    description: "查看提交进度、活动结果与公开分享内容。",
-  },
-];
+import { AdminOverviewCards } from "@/components/admin/admin-overview-cards";
+import { getAdminDashboardData, getAdminEvents } from "@/lib/data/admin";
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  const [dashboard, events] = await Promise.all([
+    getAdminDashboardData(),
+    getAdminEvents(),
+  ]);
+
   return (
-    <main className="grain min-h-screen py-14">
-      <div className="page-shell">
-        <PageIntro
-          eyebrow="Admin"
-          title="后台骨架"
-          description="这里是组织者工作台的入口。后续会继续拆成活动、酒款、模板和记录等子模块。"
-        />
-        <div className="mt-8 grid gap-5 md:grid-cols-2">
-          {adminCards.map((card) => (
-            <article
-              key={card.title}
-              className="section-card rounded-[28px] p-6"
+    <div className="space-y-6">
+      <AdminOverviewCards {...dashboard} />
+
+      <section className="section-card rounded-[28px] px-5 py-5 sm:px-6 sm:py-6">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-semibold text-foreground">最近活动</h2>
+            <p className="mt-2 text-sm leading-6 text-muted">
+              直接进入编辑页，继续维护时间地点、模板和本场酒款。
+            </p>
+          </div>
+          <Link
+            href="/admin/events/new"
+            className="rounded-full bg-[rgba(215,163,61,0.14)] px-4 py-2.5 text-sm font-medium text-accent-strong"
+          >
+            新建活动
+          </Link>
+        </div>
+
+        <div className="mt-6 space-y-3">
+          {events.slice(0, 5).map((event) => (
+            <Link
+              key={event.id}
+              href={`/admin/events/${event.id}`}
+              className="flex items-center justify-between gap-4 rounded-[22px] border border-white/8 bg-white/[0.03] px-4 py-4 transition hover:border-white/12 hover:bg-white/[0.05]"
             >
-              <h2 className="text-2xl font-semibold">{card.title}</h2>
-              <p className="mt-3 text-sm leading-7 text-muted">
-                {card.description}
-              </p>
-            </article>
+              <div className="min-w-0">
+                <p className="truncate text-base font-medium text-foreground">
+                  {event.title}
+                </p>
+                <p className="mt-1 text-sm text-muted">
+                  {event.startAtLabel} · {event.location ?? "地点待定"} · {event.beerCount} 款酒
+                </p>
+              </div>
+              <span className="rounded-full bg-white/[0.05] px-3 py-2 text-xs text-muted-strong">
+                {event.status}
+              </span>
+            </Link>
           ))}
         </div>
-      </div>
-    </main>
+      </section>
+    </div>
   );
 }
