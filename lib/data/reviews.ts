@@ -39,6 +39,9 @@ export type MyBeerReviewItem = {
   beerName: string;
   breweryName: string;
   styleName: string;
+  abv: number | null;
+  countryCode: string | null;
+  retailPriceRange: string | null;
   eventTitle: string;
   eventSlug: string | null;
   eventBeerId: string;
@@ -59,6 +62,51 @@ export type MyEventItem = {
   beerCount: number;
   statusLabel: string;
 };
+
+export async function getReviewSectionsForEvent(slug: string, eventBeerId: string) {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from("events")
+      .select(
+        `
+          slug,
+          template_version:review_template_versions (
+            snapshot_json
+          ),
+          event_beers!inner (
+            id
+          )
+        `,
+      )
+      .eq("slug", slug)
+      .eq("event_beers.id", eventBeerId)
+      .single();
+
+    if (error || !data) {
+      throw error ?? new Error("Event not found.");
+    }
+
+    const templateVersion = Array.isArray(data.template_version)
+      ? data.template_version[0]
+      : data.template_version;
+
+    return (
+      (templateVersion?.snapshot_json
+        ? parseReviewTemplateSections(templateVersion.snapshot_json)
+        : null) ?? reviewTemplateSections
+    );
+  } catch {
+    const fallbackEvent = getFallbackEventBySlug(slug);
+    const fallbackBeer = fallbackEvent?.beers.find((beer) => beer.id === eventBeerId);
+
+    if (!fallbackEvent || !fallbackBeer) {
+      return null;
+    }
+
+    return reviewTemplateSections;
+  }
+}
 
 const emptyInitialValues: ReviewFormInitialValues = {
   totalScore: null,
@@ -152,56 +200,122 @@ async function getSavedDemoReview(eventBeerId: string): Promise<SavedDemoReview>
   };
 }
 
+const myBeerReviewSelect = `
+  id,
+  event_beer_id,
+  total_score,
+  public_note,
+  status,
+  submitted_at,
+  updated_at,
+  events (
+    title,
+    slug
+  ),
+  beers (
+    brewery_name,
+    product_name,
+    style_name,
+    abv,
+    country_code,
+    retail_price_range
+  )
+`;
+
+const myBeerReviewSelectWithoutPriceRange = `
+  id,
+  event_beer_id,
+  total_score,
+  public_note,
+  status,
+  submitted_at,
+  updated_at,
+  events (
+    title,
+    slug
+  ),
+  beers (
+    brewery_name,
+    product_name,
+    style_name,
+    abv,
+    country_code
+  )
+`;
+
+type MyBeerReviewRow = {
+  id: string;
+  event_beer_id: string;
+  total_score: number | null;
+  public_note: string | null;
+  status: string;
+  submitted_at: string | null;
+  updated_at: string;
+  events: { title: string; slug: string | null } | null;
+  beers: {
+    brewery_name: string;
+    product_name: string;
+    style_name: string;
+    abv: number | null;
+    country_code: string | null;
+    retail_price_range?: string | null;
+  } | null;
+};
+
+function mapMyBeerReviews(data: MyBeerReviewRow[]): MyBeerReviewItem[] {
+  return data.map((review) => {
+    const event = Array.isArray(review.events) ? review.events[0] : review.events;
+    const beer = Array.isArray(review.beers) ? review.beers[0] : review.beers;
+
+    return {
+      id: review.id,
+      beerName: beer?.product_name ?? "未知酒款",
+      breweryName: beer?.brewery_name ?? "未知厂牌",
+      styleName: beer?.style_name ?? "风格待定",
+      abv: beer?.abv ?? null,
+      countryCode: beer?.country_code ?? null,
+      retailPriceRange: beer?.retail_price_range ?? null,
+      eventTitle: event?.title ?? "未命名活动",
+      eventSlug: event?.slug ?? null,
+      eventBeerId: review.event_beer_id,
+      totalScore: review.total_score,
+      publicNote: review.public_note ?? "",
+      submittedAtLabel: formatReviewDate(review.submitted_at ?? review.updated_at),
+      statusLabel: mapReviewStatus(review.status),
+    } satisfies MyBeerReviewItem;
+  });
+}
+
 export async function getMyBeerReviews(): Promise<MyBeerReviewItem[]> {
   try {
     const supabase = createAdminClient();
-    const { data, error } = await supabase
-      .from("reviews")
-      .select(
-        `
-          id,
-          event_beer_id,
-          total_score,
-          public_note,
-          status,
-          submitted_at,
-          updated_at,
-          events (
-            title,
-            slug
-          ),
-          beers (
-            brewery_name,
-            product_name,
-            style_name
-          )
-        `,
-      )
-      .eq("user_id", DEMO_PROFILE_ID)
-      .order("updated_at", { ascending: false });
+    const query = () =>
+      supabase
+        .from("reviews")
+        .select(myBeerReviewSelect)
+        .eq("user_id", DEMO_PROFILE_ID)
+        .order("updated_at", { ascending: false });
 
-    if (error || !data) {
+    const fallbackQuery = () =>
+      supabase
+        .from("reviews")
+        .select(myBeerReviewSelectWithoutPriceRange)
+        .eq("user_id", DEMO_PROFILE_ID)
+        .order("updated_at", { ascending: false });
+
+    const { data, error } = await query();
+
+    if (!error && data) {
+      return mapMyBeerReviews(data);
+    }
+
+    const fallback = await fallbackQuery();
+
+    if (fallback.error || !fallback.data) {
       return [];
     }
 
-    return data.map((review) => {
-      const event = Array.isArray(review.events) ? review.events[0] : review.events;
-      const beer = Array.isArray(review.beers) ? review.beers[0] : review.beers;
-
-      return {
-        id: review.id,
-        beerName: beer?.product_name ?? "未知酒款",
-        breweryName: beer?.brewery_name ?? "未知厂牌",
-        styleName: beer?.style_name ?? "风格待定",
-        eventTitle: event?.title ?? "未命名活动",
-        eventSlug: event?.slug ?? null,
-        eventBeerId: review.event_beer_id,
-        totalScore: review.total_score,
-        publicNote: review.public_note ?? "",
-        submittedAtLabel: formatReviewDate(review.submitted_at ?? review.updated_at),
-        statusLabel: mapReviewStatus(review.status),
-      } satisfies MyBeerReviewItem;
-    });
+    return mapMyBeerReviews(fallback.data);
   } catch {
     return [];
   }
@@ -314,14 +428,12 @@ export async function getReviewPageData(slug: string, eventBeerId: string) {
       ? data.event_beers[0]
       : data.event_beers;
     const beer = Array.isArray(eventBeer?.beers) ? eventBeer.beers[0] : eventBeer?.beers;
-    const templateVersion = Array.isArray(data.template_version)
-      ? data.template_version[0]
-      : data.template_version;
-    const sections =
-      (templateVersion?.snapshot_json
-        ? parseReviewTemplateSections(templateVersion.snapshot_json)
-        : null) ?? reviewTemplateSections;
+    const sections = await getReviewSectionsForEvent(slug, eventBeerId);
     const savedReview = await getSavedDemoReview(eventBeerId);
+
+    if (!sections) {
+      return null;
+    }
 
     return {
       eventTitle: data.title,
