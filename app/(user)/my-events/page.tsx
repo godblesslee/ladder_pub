@@ -2,9 +2,11 @@ import Link from "next/link";
 
 import { PageIntro } from "@/components/shared/page-intro";
 import { getMyEvents } from "@/lib/data/reviews";
+import { getUser } from "@/lib/supabase/server";
 
 export default async function MyEventsPage() {
-  const events = await getMyEvents();
+  const user = await getUser();
+  const events = await getMyEvents(user?.id);
 
   return (
     <main className="grain min-h-screen py-8">

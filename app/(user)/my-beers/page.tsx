@@ -1,9 +1,11 @@
 import { MyBeersTable } from "@/components/beers/my-beers-table";
 import { PageIntro } from "@/components/shared/page-intro";
 import { getMyBeerReviews } from "@/lib/data/reviews";
+import { getUser } from "@/lib/supabase/server";
 
 export default async function MyBeersPage() {
-  const reviews = await getMyBeerReviews();
+  const user = await getUser();
+  const reviews = await getMyBeerReviews(user?.id);
 
   return (
     <main className="grain min-h-screen py-8">

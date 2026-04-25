@@ -3,13 +3,23 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { getReviewSectionsForEvent, saveDemoReview } from "@/lib/data/reviews";
+import { getUser } from "@/lib/supabase/server";
+import { getReviewSectionsForEvent, saveReview } from "@/lib/data/reviews";
 
 export async function submitReviewAction(
   _prevState: { message: string; success: boolean } | null,
   formData: FormData,
 ) {
   try {
+    const user = await getUser();
+
+    if (!user) {
+      return {
+        success: false,
+        message: "请先登录后再提交评测。",
+      };
+    }
+
     const eventSlug = String(formData.get("eventSlug") ?? "");
     const eventBeerId = String(formData.get("eventBeerId") ?? "");
     const totalScoreValue = String(formData.get("totalScore") ?? "");
@@ -69,7 +79,7 @@ export async function submitReviewAction(
       throw new Error(`还有未填写项：${missingFields.join("、")}`);
     }
 
-    await saveDemoReview({
+    await saveReview(user.id, {
       eventSlug,
       eventBeerId,
       totalScore: totalScoreValue ? Number(totalScoreValue) : null,
@@ -81,6 +91,9 @@ export async function submitReviewAction(
     revalidatePath(`/events/${eventSlug}/beers/${eventBeerId}`);
     redirect(`/events/${eventSlug}`);
   } catch (error) {
+    if (error instanceof Error && error.message === "NEXT_REDIRECT") {
+      throw error;
+    }
     return {
       success: false,
       message:

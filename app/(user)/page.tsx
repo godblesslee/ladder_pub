@@ -4,6 +4,7 @@ import { WalletStack } from "@/components/home/wallet-stack";
 import { formatBeerMetaLine } from "@/lib/beer-display";
 import { getPublishedEvents } from "@/lib/data/events";
 import { getMyBeerReviews, getMyEvents } from "@/lib/data/reviews";
+import { getUser } from "@/lib/supabase/server";
 
 function getEventWalletStyle(index: number) {
   const styles = [
@@ -29,9 +30,10 @@ function getBeerWalletStyle(index: number) {
   return styles[index % styles.length];
 }
 export default async function Home() {
+  const user = await getUser();
   const { events } = await getPublishedEvents();
-  const myEvents = await getMyEvents();
-  const myBeers = await getMyBeerReviews();
+  const myEvents = await getMyEvents(user?.id);
+  const myBeers = await getMyBeerReviews(user?.id);
   const upcomingEvents = [...events]
     .sort((a, b) => {
       const aTime = a.startsAt ? new Date(a.startsAt).getTime() : 0;

@@ -286,21 +286,22 @@ function mapMyBeerReviews(data: MyBeerReviewRow[]): MyBeerReviewItem[] {
   });
 }
 
-export async function getMyBeerReviews(): Promise<MyBeerReviewItem[]> {
+export async function getMyBeerReviews(userId?: string): Promise<MyBeerReviewItem[]> {
+  const targetUserId = userId ?? DEMO_PROFILE_ID;
   try {
     const supabase = createAdminClient();
     const query = () =>
       supabase
         .from("reviews")
         .select(myBeerReviewSelect)
-        .eq("user_id", DEMO_PROFILE_ID)
+        .eq("user_id", targetUserId)
         .order("updated_at", { ascending: false });
 
     const fallbackQuery = () =>
       supabase
         .from("reviews")
         .select(myBeerReviewSelectWithoutPriceRange)
-        .eq("user_id", DEMO_PROFILE_ID)
+        .eq("user_id", targetUserId)
         .order("updated_at", { ascending: false });
 
     const { data, error } = await query();
@@ -321,7 +322,8 @@ export async function getMyBeerReviews(): Promise<MyBeerReviewItem[]> {
   }
 }
 
-export async function getMyEvents(): Promise<MyEventItem[]> {
+export async function getMyEvents(userId?: string): Promise<MyEventItem[]> {
+  const targetUserId = userId ?? DEMO_PROFILE_ID;
   try {
     const supabase = createAdminClient();
     const { data: participants, error: participantsError } = await supabase
@@ -340,7 +342,7 @@ export async function getMyEvents(): Promise<MyEventItem[]> {
           )
         `,
       )
-      .eq("user_id", DEMO_PROFILE_ID)
+      .eq("user_id", targetUserId)
       .eq("participation_status", "joined");
 
     if (participantsError || !participants) {
@@ -350,7 +352,7 @@ export async function getMyEvents(): Promise<MyEventItem[]> {
     const { data: reviews, error: reviewsError } = await supabase
       .from("reviews")
       .select("event_id")
-      .eq("user_id", DEMO_PROFILE_ID);
+      .eq("user_id", targetUserId);
 
     const reviewCounts = new Map<string, number>();
 
@@ -478,13 +480,16 @@ export async function getReviewPageData(slug: string, eventBeerId: string) {
   }
 }
 
-export async function saveDemoReview(input: {
-  eventSlug: string;
-  eventBeerId: string;
-  totalScore: number | null;
-  publicNote: string;
-  answers: Record<string, string | string[]>;
-}) {
+export async function saveReview(
+  userId: string,
+  input: {
+    eventSlug: string;
+    eventBeerId: string;
+    totalScore: number | null;
+    publicNote: string;
+    answers: Record<string, string | string[]>;
+  },
+) {
   const supabase = createAdminClient();
 
   const { data: eventData, error: eventError } = await supabase
@@ -503,14 +508,13 @@ export async function saveDemoReview(input: {
     : eventData.event_beers;
 
   await supabase.from("profiles").upsert({
-    id: DEMO_PROFILE_ID,
-    nickname: "Demo Taster",
+    id: userId,
     role: "user",
   });
 
   await supabase.from("event_participants").upsert({
     event_id: eventData.id,
-    user_id: DEMO_PROFILE_ID,
+    user_id: userId,
     participation_status: "joined",
   });
 
@@ -518,7 +522,7 @@ export async function saveDemoReview(input: {
     .from("reviews")
     .upsert(
       {
-        user_id: DEMO_PROFILE_ID,
+        user_id: userId,
         event_id: eventData.id,
         event_beer_id: input.eventBeerId,
         beer_id: eventBeer.beer_id,
@@ -564,4 +568,14 @@ export async function saveDemoReview(input: {
   }
 
   return review.id;
+}
+
+export async function saveDemoReview(input: {
+  eventSlug: string;
+  eventBeerId: string;
+  totalScore: number | null;
+  publicNote: string;
+  answers: Record<string, string | string[]>;
+}) {
+  return saveReview(DEMO_PROFILE_ID, input);
 }
