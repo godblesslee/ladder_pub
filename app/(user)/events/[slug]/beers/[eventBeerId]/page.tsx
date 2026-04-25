@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { PageIntro } from "@/components/shared/page-intro";
+import { formatBeerBrandLabel, formatBeerStyleLabel } from "@/lib/beer-display";
 import { getReviewPageData } from "@/lib/data/reviews";
 
 import { ReviewForm } from "./review-form";
@@ -26,7 +27,7 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
         <PageIntro
           eyebrow="Beer Review"
           title={data.beerName}
-          description={`${data.breweryName} · ${data.styleName}`}
+          description={`${formatBeerBrandLabel(data.breweryName)} · ${formatBeerStyleLabel(data.styleName)}`}
         />
 
         <div className="mt-6 flex flex-wrap gap-3 text-sm text-muted">

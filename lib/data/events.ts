@@ -7,6 +7,7 @@ export type EventListItem = {
   title: string;
   description: string;
   date: string;
+  startsAt: string | null;
   location: string;
   beerCount: number;
   status: string;
@@ -97,6 +98,7 @@ export async function getPublishedEvents(): Promise<{
         title: event.title,
         description: event.description ?? "暂无活动描述。",
         date: formatDate(event.start_at),
+        startsAt: event.start_at ?? null,
         location: event.location ?? "地点待定",
         beerCount: event.event_beers?.length ?? 0,
         status: mapStatus(event.status),
@@ -114,6 +116,7 @@ export async function getPublishedEvents(): Promise<{
         title: event.title,
         description: event.description,
         date: event.date,
+        startsAt: event.date,
         location: event.location,
         beerCount: event.beerCount,
         status: event.status,

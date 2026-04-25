@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { PageIntro } from "@/components/shared/page-intro";
-import { SourceBadge } from "@/components/shared/source-badge";
+import { formatBeerBrandLabel, formatBeerStyleLabel } from "@/lib/beer-display";
 import { getEventBySlug } from "@/lib/data/events";
 
 type EventDetailPageProps = {
@@ -15,7 +15,7 @@ export default async function EventDetailPage({
   params,
 }: EventDetailPageProps) {
   const { slug } = await params;
-  const { event, source } = await getEventBySlug(slug);
+  const { event } = await getEventBySlug(slug);
 
   if (!event) {
     notFound();
@@ -35,16 +35,6 @@ export default async function EventDetailPage({
           <span className="rounded-full bg-white/4 px-4 py-2">
             {event.location}
           </span>
-          <span className="rounded-full bg-accent-soft px-4 py-2 text-accent-strong">
-            {event.status}
-          </span>
-        </div>
-
-        <div className="mt-8">
-          <SourceBadge
-            source={source}
-            fallbackLabel="当前活动详情使用本地示例数据；远程表有完整数据后会自动切换。"
-          />
         </div>
 
         {event.theme || event.audience || event.schedule || event.sourceNote ? (
@@ -109,7 +99,8 @@ export default async function EventDetailPage({
                       {beer.productName}
                     </h3>
                     <p className="mt-2 text-sm text-muted">
-                      {beer.breweryName} · {beer.styleName}
+                      {formatBeerBrandLabel(beer.breweryName)} ·{" "}
+                      {formatBeerStyleLabel(beer.styleName)}
                     </p>
                   </div>
                   <div className="flex items-center gap-4 text-sm text-muted sm:block">

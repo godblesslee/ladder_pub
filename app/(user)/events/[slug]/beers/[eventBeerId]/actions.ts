@@ -1,8 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
-import { saveDemoReview } from "@/lib/data/reviews";
+import { getReviewSectionsForEvent, saveDemoReview } from "@/lib/data/reviews";
 
 export async function submitReviewAction(
   _prevState: { message: string; success: boolean } | null,
@@ -34,6 +35,40 @@ export async function submitReviewAction(
       }
     }
 
+    const sections = await getReviewSectionsForEvent(eventSlug, eventBeerId);
+
+    if (!sections) {
+      throw new Error("未找到这杯酒的评测模板，请刷新后重试。");
+    }
+
+    const missingFields = sections.flatMap((section) =>
+      section.fields.flatMap((field) => {
+        if (field.required === false) {
+          return [];
+        }
+
+        const value = answers[field.key];
+
+        if (Array.isArray(value)) {
+          return value.length > 0 ? [] : [`${section.title} / ${field.label}`];
+        }
+
+        if (typeof value === "string") {
+          return value.trim().length > 0 ? [] : [`${section.title} / ${field.label}`];
+        }
+
+        return [`${section.title} / ${field.label}`];
+      }),
+    );
+
+    if (!totalScoreValue) {
+      missingFields.push("总评分");
+    }
+
+    if (missingFields.length > 0) {
+      throw new Error(`还有未填写项：${missingFields.join("、")}`);
+    }
+
     await saveDemoReview({
       eventSlug,
       eventBeerId,
@@ -44,11 +79,7 @@ export async function submitReviewAction(
 
     revalidatePath(`/events/${eventSlug}`);
     revalidatePath(`/events/${eventSlug}/beers/${eventBeerId}`);
-
-    return {
-      success: true,
-      message: "测评已保存到 Supabase，再次进入时会自动回填。",
-    };
+    redirect(`/events/${eventSlug}`);
   } catch (error) {
     return {
       success: false,

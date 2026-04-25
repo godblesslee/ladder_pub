@@ -6,6 +6,7 @@ export type ReviewField = {
   label: string;
   type: ReviewFieldType;
   options?: string[];
+  required?: boolean;
 };
 
 export type ReviewSection = {
@@ -71,6 +72,7 @@ export function parseReviewTemplateSections(snapshot: Json): ReviewSection[] | n
           const label = field.label;
           const type = field.type;
           const options = field.options;
+          const required = field.required;
 
           if (
             typeof fieldKey !== "string" ||
@@ -85,6 +87,7 @@ export function parseReviewTemplateSections(snapshot: Json): ReviewSection[] | n
             label,
             type,
             options: isStringArray(options) ? options : undefined,
+            required: typeof required === "boolean" ? required : undefined,
           };
 
           return parsedField;
@@ -159,6 +162,7 @@ export const reviewTemplateSections: ReviewSection[] = [
         key: "flavor_notes",
         label: "风味补充",
         type: "textarea",
+        required: false,
       },
     ],
   },
