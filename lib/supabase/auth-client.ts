@@ -3,14 +3,10 @@ import { createClient } from "@/lib/supabase/browser";
 export async function sendMagicLink(email: string): Promise<{ success: boolean; error?: string }> {
   const supabase = createClient();
 
-  const redirectTo = typeof window !== "undefined" 
-    ? `${window.location.origin}/auth/confirm`
-    : undefined;
-
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: redirectTo,
+      should_create_user: false,
     },
   });
 
