@@ -22,8 +22,13 @@ export async function GET(request: NextRequest) {
     console.log("verifyOtp result:", error?.message ?? "success");
 
     if (!error) {
-      const redirectUrl = new URL(request.url);
-      redirectUrl.pathname = next;
+      let redirectUrl: URL;
+      try {
+        redirectUrl = new URL(next);
+      } catch {
+        redirectUrl = new URL(request.url);
+        redirectUrl.pathname = next;
+      }
       redirectUrl.searchParams.delete("token_hash");
       redirectUrl.searchParams.delete("type");
       redirectUrl.searchParams.delete("next");
