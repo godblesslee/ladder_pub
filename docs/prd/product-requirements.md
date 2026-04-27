@@ -88,11 +88,13 @@
 
 ## 5.2 组织者端必需功能（MVP）
 
-- 酒款数据库管理
-- 活动管理
-- 活动酒款配置
-- 测评模板管理
-- 查看用户提交记录
+- [x] 酒款数据库管理（/admin/beers）
+- [x] 活动管理（/admin/events）
+- [x] 活动酒款配置（/admin/events/[id]/beers）
+- [x] 测评模板管理（/admin/templates）
+- [ ] 查看用户提交记录
+- [x] 管理员登录认证（/login）
+- [x] 管理员密码修改（/admin/settings）
 
 ## 5.3 后续增强功能（V2）
 
@@ -200,13 +202,58 @@
 
 模板应支持：
 
-- 分组
-- 单选
-- 多选
-- 文本输入
-- 数值评分
-- 排序
-- 是否必填
+- [x] 分组（sections）
+- [x] 单选（single_select）
+- [x] 多选（multi_select）
+- [x] 文本输入（textarea）
+- [x] 数值评分（number）
+- [x] 排序（sort）
+- [ ] 是否必填（field.required）
+
+后台配置路径：/admin/templates
+
+---
+
+## 11. 技术实现记录
+
+### 11.1 数据库结构
+
+核心表：
+- `organizations` - 组织
+- `profiles` - 用户（role: user/organizer/admin）
+- `beers` - 酒款库
+- `review_templates` - 评测模板
+- `review_template_versions` - 模板版本（含 snapshot_json）
+- `events` - 活动
+- `event_beers` - 活动中待评测酒款
+- `reviews` - 评测记录
+- `review_answers` - 评测答案
+
+### 11.2 管理后台路由
+
+| 路径 | 功能 |
+|---|---|
+| /login | 管理员登录（密码：123456）|
+| /admin | 后台首页 |
+| /admin/events | 活动列表 |
+| /admin/events/new | 新建活动 |
+| /admin/events/[id] | 编辑活动 |
+| /admin/events/[id]/beers | 活动酒款管理 |
+| /admin/beers | 酒款库列表 |
+| /admin/beers/new | 新建酒款 |
+| /admin/beers/[id] | 酒款详情 |
+| /admin/beers/[id]/edit | 编辑酒款 |
+| /admin/templates | 模板列表 |
+| /admin/templates/new | 新建模板 |
+| /admin/templates/[id] | 编辑模板 |
+| /admin/settings | 修改密码 |
+
+### 11.3 部署信息
+
+- 域名：ladder.pub
+- 路径：/testingtool
+- 服务器：47.76.250.17
+- 技术栈：Next.js 16 + Supabase + Nginx
 
 ## 7. 非功能需求
 
