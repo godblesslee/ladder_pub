@@ -10,6 +10,10 @@ export default function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (isLoading) return;
+    if (!email) return;
+
     setIsLoading(true);
     setMessage(null);
 
@@ -92,7 +96,7 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={isLoading || !email}
+            disabled={isLoading}
             className="w-full py-3.5 px-4 rounded-xl bg-accent text-background font-semibold text-sm transition-all hover:bg-accent-strong disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? "发送中..." : "发送登录链接"}

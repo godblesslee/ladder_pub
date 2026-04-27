@@ -7,6 +7,8 @@ const adminTabs = [
   { href: "/admin", label: "总览" },
   { href: "/admin/events", label: "活动管理" },
   { href: "/admin/beers", label: "酒款库" },
+  { href: "/admin/templates", label: "模板管理" },
+  { href: "/admin/settings", label: "设置" },
 ];
 
 export function AdminTabs() {

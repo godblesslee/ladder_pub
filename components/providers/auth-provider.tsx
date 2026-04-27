@@ -15,6 +15,7 @@ type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   signOut: () => Promise<void>;
+  checkSession: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -51,7 +52,11 @@ export function AuthProvider({
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, signOut: handleSignOut }}>
+    <AuthContext.Provider value={{ user, isLoading, signOut: handleSignOut, checkSession: async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+    } }}>
       {children}
     </AuthContext.Provider>
   );

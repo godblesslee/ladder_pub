@@ -78,6 +78,102 @@ export async function saveBeerAction(formData: FormData) {
   redirect(`/admin/beers/${data.id}`);
 }
 
+export async function removeBeerFromEventAction(eventId: string, beerId: string) {
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("event_beers")
+    .delete()
+    .eq("event_id", eventId)
+    .eq("beer_id", beerId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath(`/admin/events/${eventId}/beers`);
+}
+
+export async function saveTemplateAction(formData: FormData) {
+  const supabase = createAdminClient();
+  const id = String(formData.get("id") ?? "").trim();
+  const name = String(formData.get("name") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const status = String(formData.get("status") ?? "draft").trim();
+  const snapshotStr = String(formData.get("snapshot") ?? "{}").trim();
+
+  if (!name) {
+    throw new Error("模板名称为必填项");
+  }
+
+  let snapshot: Record<string, unknown>;
+  try {
+    snapshot = JSON.parse(snapshotStr);
+  } catch {
+    throw new Error("模板结构数据格式错误");
+  }
+
+  const templatePayload = {
+    organization_id: DEFAULT_ORGANIZATION_ID,
+    name,
+    description: description || null,
+    status,
+  };
+
+  let templateId = id;
+
+  if (id) {
+    const { data, error } = await supabase
+      .from("review_templates")
+      .update(templatePayload)
+      .eq("id", id)
+      .select("id")
+      .single();
+
+    if (error || !data) {
+      throw new Error(error?.message ?? "更新模板失败");
+    }
+  } else {
+    const { data, error } = await supabase
+      .from("review_templates")
+      .insert(templatePayload)
+      .select("id")
+      .single();
+
+    if (error || !data) {
+      throw new Error(error?.message ?? "创建模板失败");
+    }
+    templateId = data.id;
+  }
+
+  const { data: existingVersions } = await supabase
+    .from("review_template_versions")
+    .select("id, version_number")
+    .eq("template_id", templateId)
+    .order("version_number", { ascending: false })
+    .limit(1);
+
+  const nextVersion = (existingVersions?.[0]?.version_number ?? 0) + 1;
+
+  const versionPayload = {
+    template_id: templateId,
+    version_number: nextVersion,
+    snapshot_json: snapshot as never,
+    published_at: status === "published" ? new Date().toISOString() : null,
+  };
+
+  const { error: versionError } = await supabase
+    .from("review_template_versions")
+    .insert(versionPayload);
+
+  if (versionError) {
+    throw new Error(versionError.message);
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/templates");
+  redirect(`/admin/templates/${templateId}`);
+}
+
 export async function saveEventAction(formData: FormData) {
   const supabase = createAdminClient();
   const id = String(formData.get("id") ?? "").trim();

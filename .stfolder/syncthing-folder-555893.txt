@@ -1,0 +1,5 @@
+# This directory is a Syncthing folder marker.
+# Do not delete.
+
+folderID: 3cjmx-7sbrn
+created: 2026-04-27T22:08:36+08:00

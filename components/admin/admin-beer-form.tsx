@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { saveBeerAction } from "@/app/(admin)/admin/actions";
 
 type AdminBeerFormProps = {
@@ -16,20 +19,80 @@ type AdminBeerFormProps = {
 };
 
 export function AdminBeerForm({ beer }: AdminBeerFormProps) {
+  const [breweryName, setBreweryName] = useState(beer?.breweryName ?? "");
+  const [breweries, setBreweries] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    async function fetchBreweries() {
+      try {
+        const res = await fetch("/api/admin/breweries");
+        if (res.ok) {
+          const data = await res.json();
+          setBreweries(data.breweries);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    fetchBreweries();
+  }, []);
+
+  const filteredBreweries = breweryName
+    ? breweries.filter((b) =>
+        b.toLowerCase().includes(breweryName.toLowerCase())
+      )
+    : breweries;
+
+  function handleBreweryChange(value: string) {
+    setBreweryName(value);
+    setShowSuggestions(true);
+  }
+
+  function handleSelectBrewery(brewery: string) {
+    setBreweryName(brewery);
+    setShowSuggestions(false);
+  }
+
+  function handleBreweryBlur() {
+    setTimeout(() => setShowSuggestions(false), 150);
+  }
+
   return (
     <form action={saveBeerAction} className="space-y-6">
       <input type="hidden" name="id" value={beer?.id ?? ""} />
 
       <section className="section-card rounded-[28px] px-5 py-5 sm:px-6 sm:py-6">
         <div className="grid gap-5 md:grid-cols-2">
-          <label className="space-y-2">
+          <label className="relative space-y-2">
             <span className="text-sm font-medium text-muted-strong">厂牌</span>
-            <input
-              name="breweryName"
-              defaultValue={beer?.breweryName ?? ""}
-              className="w-full rounded-[18px] border border-white/8 bg-white/[0.04] px-4 py-3 text-sm outline-none"
-              placeholder="例如：野鹅微醺"
-            />
+            <div className="relative">
+              <input
+                name="breweryName"
+                value={breweryName}
+                onChange={(e) => handleBreweryChange(e.target.value)}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={handleBreweryBlur}
+                className="w-full rounded-[18px] border border-white/8 bg-white/[0.04] px-4 py-3 text-sm outline-none"
+                placeholder="选择或输入厂牌"
+                autoComplete="off"
+              />
+              {showSuggestions && filteredBreweries.length > 0 && (
+                <div className="absolute z-10 mt-1 max-h-[200px] w-full overflow-y-auto rounded-[16px] border border-white/12 bg-[#1a1a1a] py-2 shadow-lg">
+                  {filteredBreweries.slice(0, 10).map((brewery) => (
+                    <button
+                      key={brewery}
+                      type="button"
+                      onClick={() => handleSelectBrewery(brewery)}
+                      className="w-full px-4 py-2 text-left text-sm text-muted hover:bg-white/[0.05] hover:text-foreground"
+                    >
+                      {brewery}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </label>
           <label className="space-y-2">
             <span className="text-sm font-medium text-muted-strong">酒款名称</span>

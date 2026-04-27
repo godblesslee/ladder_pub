@@ -39,6 +39,50 @@ export type AdminTemplateOption = {
   label: string;
 };
 
+export type AdminTemplateListItem = {
+  id: string;
+  name: string;
+  description: string | null;
+  status: string;
+  versionCount: number;
+  latestVersionLabel: string;
+  updatedAtLabel: string;
+};
+
+export type AdminTemplateEditorData = {
+  template: {
+    id: string;
+    name: string;
+    description: string;
+    status: string;
+  } | null;
+  versions: {
+    id: string;
+    versionNumber: number;
+    publishedAt: string | null;
+    fieldCount: number;
+  }[];
+  snapshotJson: TemplateSnapshotJson | null;
+};
+
+export type TemplateSection = {
+  key: string;
+  title: string;
+  fields: TemplateField[];
+};
+
+export type TemplateField = {
+  key: string;
+  label: string;
+  type: "single_select" | "multi_select" | "textarea" | "number" | "sort";
+  options?: string[];
+  required?: boolean;
+};
+
+export type TemplateSnapshotJson = {
+  sections: TemplateSection[];
+};
+
 export type AdminBeerOption = {
   id: string;
   breweryName: string;
@@ -373,9 +417,9 @@ export async function getAdminEventEditorData(
     beers: beerOptions,
     assignedBeers:
       eventResult.data.event_beers?.map((item) => ({
-        beerId: item.beer_id,
-        servingOrder: item.serving_order,
-        notes: item.notes ?? "",
+        beerId: item.beer_id as string,
+        servingOrder: item.serving_order as number | null,
+        notes: (item.notes ?? "") as string,
       })) ?? [],
   };
 }
@@ -424,5 +468,250 @@ export async function getAdminBeerEditorData(
       imageUrl: data.image_url ?? "",
       description: data.description ?? "",
     },
+  };
+}
+
+export type AdminBeerDetailData = {
+  beer: {
+    id: string;
+    breweryName: string;
+    productName: string;
+    styleName: string;
+    abv: string | null;
+    volumeMl: string | null;
+    countryCode: string | null;
+    retailPriceRange: string | null;
+    imageUrl: string | null;
+    description: string | null;
+  } | null;
+};
+
+export async function getAdminBeerDetailData(
+  beerId: string,
+): Promise<AdminBeerDetailData> {
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from("beers")
+    .select(
+      `
+        id,
+        brewery_name,
+        product_name,
+        style_name,
+        abv,
+        volume_ml,
+        country_code,
+        retail_price_range,
+        image_url,
+        description
+      `,
+    )
+    .eq("id", beerId)
+    .maybeSingle();
+
+  if (!data) {
+    return { beer: null };
+  }
+
+  return {
+    beer: {
+      id: data.id,
+      breweryName: data.brewery_name,
+      productName: data.product_name,
+      styleName: data.style_name,
+      abv: data.abv !== null ? String(data.abv) : null,
+      volumeMl: data.volume_ml !== null ? String(data.volume_ml) : null,
+      countryCode: data.country_code,
+      retailPriceRange: data.retail_price_range,
+      imageUrl: data.image_url,
+      description: data.description,
+    },
+  };
+}
+
+export async function getAdminTemplates(): Promise<AdminTemplateListItem[]> {
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from("review_templates")
+    .select(
+      `
+        id,
+        name,
+        description,
+        status,
+        created_at,
+        review_template_versions ( count )
+      `,
+    )
+    .eq("organization_id", DEFAULT_ORGANIZATION_ID)
+    .order("created_at", { ascending: false });
+
+  if (!data) {
+    return [];
+  }
+
+  return data.map((template) => {
+    const versions = template.review_template_versions as { count: number }[] | null;
+    const versionCount = versions?.[0]?.count ?? 0;
+
+    return {
+      id: template.id,
+      name: template.name,
+      description: template.description,
+      status: template.status === "published" ? "已发布" : template.status === "draft" ? "草稿" : "已归档",
+      versionCount,
+      latestVersionLabel: versionCount > 0 ? `V${versionCount}` : "无版本",
+      updatedAtLabel: formatDateTimeLabel(template.created_at),
+    };
+  });
+}
+
+export async function getAdminTemplateEditorData(
+  templateId?: string,
+): Promise<AdminTemplateEditorData> {
+  const supabase = createAdminClient();
+
+  if (!templateId) {
+    return {
+      template: null,
+      versions: [],
+      snapshotJson: { sections: [] },
+    };
+  }
+
+  const { data: template } = await supabase
+    .from("review_templates")
+    .select("id, name, description, status")
+    .eq("id", templateId)
+    .eq("organization_id", DEFAULT_ORGANIZATION_ID)
+    .maybeSingle();
+
+  if (!template) {
+    return {
+      template: null,
+      versions: [],
+      snapshotJson: { sections: [] },
+    };
+  }
+
+  const { data: versions } = await supabase
+    .from("review_template_versions")
+    .select("id, version_number, published_at, snapshot_json")
+    .eq("template_id", templateId)
+    .order("version_number", { ascending: false });
+
+  const versionItems = (versions ?? []).map((v) => {
+    const snapshot = v.snapshot_json as TemplateSnapshotJson | null;
+    const fieldCount = snapshot?.sections?.reduce(
+      (acc, section) => acc + (section.fields?.length ?? 0),
+      0,
+    ) ?? 0;
+
+    return {
+      id: v.id,
+      versionNumber: v.version_number,
+      publishedAt: v.published_at,
+      fieldCount,
+    };
+  });
+
+  const latestSnapshot = versions?.[0]?.snapshot_json as TemplateSnapshotJson | null;
+
+  return {
+    template: {
+      id: template.id,
+      name: template.name,
+      description: template.description ?? "",
+      status: template.status,
+    },
+    versions: versionItems,
+    snapshotJson: latestSnapshot ?? { sections: [] },
+  };
+}
+
+export type AdminEventBeerItem = {
+  id: string;
+  beerId: string;
+  breweryName: string;
+  productName: string;
+  styleName: string;
+  abv: number | null;
+  countryCode: string | null;
+  servingOrder: number | null;
+  notes: string | null;
+  customLabel: string | null;
+  vintage: string | null;
+  batchNo: string | null;
+  blindCode: string | null;
+};
+
+export type AdminEventBeersData = {
+  eventId: string;
+  eventTitle: string;
+  beers: AdminEventBeerItem[];
+};
+
+export async function getAdminEventBeersData(
+  eventId: string,
+): Promise<AdminEventBeersData> {
+  const supabase = createAdminClient();
+
+  const { data: event } = await supabase
+    .from("events")
+    .select("id, title")
+    .eq("id", eventId)
+    .maybeSingle();
+
+  if (!event) {
+    return { eventId, eventTitle: "", beers: [] };
+  }
+
+  const { data: eventBeers } = await supabase
+    .from("event_beers")
+    .select(
+      `
+        id,
+        beer_id,
+        serving_order,
+        notes,
+        custom_label,
+        vintage,
+        batch_no,
+        blind_code,
+        beers (
+          brewery_name,
+          product_name,
+          style_name,
+          abv,
+          country_code
+        )
+      `,
+    )
+    .eq("event_id", eventId)
+    .order("serving_order", { ascending: true });
+
+  const items: AdminEventBeerItem[] = (eventBeers ?? []).map((eb) => {
+    const beer = Array.isArray(eb.beers) ? eb.beers[0] : eb.beers;
+    return {
+      id: eb.id,
+      beerId: eb.beer_id,
+      breweryName: beer?.brewery_name ?? "",
+      productName: beer?.product_name ?? "",
+      styleName: beer?.style_name ?? "",
+      abv: beer?.abv ?? null,
+      countryCode: beer?.country_code ?? null,
+      servingOrder: eb.serving_order,
+      notes: eb.notes,
+      customLabel: eb.custom_label,
+      vintage: eb.vintage,
+      batchNo: eb.batch_no,
+      blindCode: eb.blind_code,
+    };
+  });
+
+  return {
+    eventId: event.id,
+    eventTitle: event.title,
+    beers: items,
   };
 }
