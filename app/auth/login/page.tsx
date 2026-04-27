@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { sendMagicLink } from "@/lib/supabase/auth-client";
+import { createClient } from "@/lib/supabase/browser";
 
 export default function LoginPage() {
+  const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -13,19 +15,34 @@ export default function LoginPage() {
     setIsLoading(true);
     setMessage(null);
 
-    const result = await sendMagicLink(email);
+    const supabase = createClient();
 
-    if (result.success) {
-      setMessage({
-        type: "success",
-        text: "登录链接已发送到邮箱，请查收。",
+    if (mode === "signup") {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+        },
       });
-      setEmail("");
+
+      if (error) {
+        setMessage({ type: "error", text: error.message });
+      } else {
+        setMessage({ type: "success", text: "注册成功！请查收验证邮件后登录。" });
+        setPassword("");
+      }
     } else {
-      setMessage({
-        type: "error",
-        text: result.error || "发送失败，请稍后重试。",
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
+
+      if (error) {
+        setMessage({ type: "error", text: error.message });
+      } else {
+        window.location.href = "/";
+      }
     }
 
     setIsLoading(false);
@@ -51,10 +68,10 @@ export default function LoginPage() {
             </svg>
           </div>
           <h1 className="text-2xl font-semibold text-foreground mb-2">
-            登录小酒馆
+            {mode === "login" ? "登录小酒馆" : "注册账号"}
           </h1>
           <p className="text-sm text-muted">
-            输入邮箱，获取登录链接
+            {mode === "login" ? "使用邮箱和密码登录" : "创建账号开始使用"}
           </p>
         </div>
 
@@ -78,6 +95,26 @@ export default function LoginPage() {
             />
           </div>
 
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-muted-strong mb-2"
+            >
+              密码
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              minLength={6}
+              disabled={isLoading}
+              className="w-full px-4 py-3 rounded-xl bg-surface border border-border text-foreground placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/30 transition-all disabled:opacity-50"
+            />
+          </div>
+
           {message && (
             <div
               className={`px-4 py-3 rounded-xl text-sm ${
@@ -92,15 +129,28 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={isLoading || !email}
+            disabled={isLoading || !email || !password}
             className="w-full py-3.5 px-4 rounded-xl bg-accent text-background font-semibold text-sm transition-all hover:bg-accent-strong disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? "发送中..." : "发送登录链接"}
+            {isLoading ? "处理中..." : mode === "login" ? "登录" : "注册"}
           </button>
         </form>
 
+        <div className="mt-6 text-center">
+          <button
+            type="button"
+            onClick={() => {
+              setMode(mode === "login" ? "signup" : "login");
+              setMessage(null);
+            }}
+            className="text-sm text-accent hover:text-accent-strong transition-colors"
+          >
+            {mode === "login" ? "没有账号？立即注册" : "已有账号？登录"}
+          </button>
+        </div>
+
         <p className="mt-8 text-center text-xs text-muted/60">
-          登录即表示你同意我们的服务条款
+          {mode === "login" ? "登录即表示你同意我们的服务条款" : "注册即表示你同意我们的服务条款"}
         </p>
       </div>
     </div>
