@@ -17,7 +17,7 @@ export default async function AdminLayout({
   const isAuthenticated = session?.value === "authenticated";
 
   if (!isAuthenticated) {
-    redirect("/testingtool/login");
+    redirect("/login");
   }
 
   return (

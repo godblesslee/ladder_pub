@@ -56,6 +56,17 @@ npm run dev
 - [`supabase/migrations/20260424171000_initial_schema.sql`](./supabase/migrations/20260424171000_initial_schema.sql)
 - [`supabase/seed.sql`](./supabase/seed.sql)
 
+## 生产部署
+
+当前生产域名为 `https://ladder.pub`，应用部署在域名根路径，不使用 `basePath` 或 `/testingtool` 子路径。
+
+生产环境需要确认：
+
+- Nginx 将 `https://ladder.pub/` 代理到 Next.js 服务。
+- Supabase Auth 的 Site URL 为 `https://ladder.pub`。
+- Supabase Auth 的 Redirect URLs 至少包含 `https://ladder.pub/auth/confirm`。
+- 登录页入口为 `https://ladder.pub/login`，后台入口为 `https://ladder.pub/admin`。
+
 ## 当前状态
 
 当前仓库已经完成：

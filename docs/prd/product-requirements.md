@@ -251,7 +251,7 @@
 ### 11.3 部署信息
 
 - 域名：ladder.pub
-- 路径：/testingtool
+- 路径：/
 - 服务器：47.76.250.17
 - 技术栈：Next.js 16 + Supabase + Nginx
 
