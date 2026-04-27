@@ -227,14 +227,14 @@ otp_length = 6
 otp_expiry = 3600
 
 # Use a production-ready SMTP server
-# [auth.email.smtp]
-# enabled = true
-# host = "smtp.sendgrid.net"
-# port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+[auth.email.smtp]
+enabled = true
+host = "email-smtp.ap-southeast-1.amazonaws.com"
+port = 587
+user = "AKIA2RQWFSDWOHQIPIF7"
+pass = "BCg6LQJXKKi3VNteh0UgLMCB697fGt2qZgJxcupgfoPr"
+admin_email = "noreply@ladder.pub"
+sender_name = "小酒馆"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]
