@@ -1,8 +1,4 @@
 <h2>登录小酒馆</h2>
 <p>点击以下链接登录你的账号：</p>
-<p>
-  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}">登录小酒馆</a>
-</p>
-<p>或者复制以下链接到浏览器：</p>
-<p>{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}</p>
+<p><a href="{{ .ConfirmationURL }}">登录小酒馆</a></p>
 <p>此链接 1 小时后过期。</p>
