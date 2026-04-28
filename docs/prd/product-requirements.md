@@ -250,10 +250,12 @@
 
 ### 11.3 部署信息
 
-- 域名：ladder.pub
-- 路径：/
-- 服务器：47.76.250.17
-- 技术栈：Next.js 16 + Supabase + Nginx
+- **主页域名**：ladder.pub（静态占位页）/ www.ladder.pub
+- **应用域名**：testingapp.ladder.pub（Next.js 动态应用）
+- **服务器**：阿里云 ECS (47.76.250.17, 1GB RAM)
+- **技术栈**：Next.js 16 + Supabase + Nginx
+- **basePath**：无（通过子域名区分应用）
+- **部署方式**：本地 build → rsync .next 到服务器（不在服务器上 build，避免内存不足）
 
 ## 7. 非功能需求
 
