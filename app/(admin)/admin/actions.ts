@@ -233,31 +233,33 @@ export async function saveEventAction(formData: FormData) {
     }
   }
 
-  const selectedBeers = [...beerIds]
-    .filter((beerId) => formData.get(`includeBeer:${beerId}`) === "on")
-    .map((beerId) => ({
-      event_id: eventId,
-      beer_id: beerId,
-      serving_order: toNullableNumber(formData.get(`servingOrder:${beerId}`)),
-      notes: toNullableString(formData.get(`notes:${beerId}`)),
-    }));
+  if (beerIds.size > 0) {
+    const selectedBeers = [...beerIds]
+      .filter((beerId) => formData.get(`includeBeer:${beerId}`) === "on")
+      .map((beerId) => ({
+        event_id: eventId,
+        beer_id: beerId,
+        serving_order: toNullableNumber(formData.get(`servingOrder:${beerId}`)),
+        notes: toNullableString(formData.get(`notes:${beerId}`)),
+      }));
 
-  const { error: deleteError } = await supabase
-    .from("event_beers")
-    .delete()
-    .eq("event_id", eventId);
-
-  if (deleteError) {
-    throw new Error(deleteError.message);
-  }
-
-  if (selectedBeers.length > 0) {
-    const { error: beersError } = await supabase
+    const { error: deleteError } = await supabase
       .from("event_beers")
-      .insert(selectedBeers);
+      .delete()
+      .eq("event_id", eventId);
 
-    if (beersError) {
-      throw new Error(beersError.message);
+    if (deleteError) {
+      throw new Error(deleteError.message);
+    }
+
+    if (selectedBeers.length > 0) {
+      const { error: beersError } = await supabase
+        .from("event_beers")
+        .insert(selectedBeers);
+
+      if (beersError) {
+        throw new Error(beersError.message);
+      }
     }
   }
 
