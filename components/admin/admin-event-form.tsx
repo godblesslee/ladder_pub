@@ -285,7 +285,6 @@ export function AdminEventForm({
                           {beer.countryCode
                             ? ` · ${mapCountryCodeLabel(beer.countryCode)}`
                             : ""}
-                          {beer.retailPriceRange ? ` · ${beer.retailPriceRange}` : ""}
                         </p>
                       </div>
                     </div>
@@ -350,7 +349,6 @@ export function AdminEventForm({
                       {beer.countryCode
                         ? ` · ${mapCountryCodeLabel(beer.countryCode)}`
                         : ""}
-                      {beer.retailPriceRange ? ` · ${beer.retailPriceRange}` : ""}
                     </p>
                   </div>
                 </div>

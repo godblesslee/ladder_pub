@@ -50,7 +50,6 @@ export type Database = {
           image_url: string | null
           organization_id: string
           product_name: string
-          retail_price_range: string | null
           style_name: string
           updated_at: string
           volume_ml: number | null
@@ -65,7 +64,6 @@ export type Database = {
           image_url?: string | null
           organization_id: string
           product_name: string
-          retail_price_range?: string | null
           style_name: string
           updated_at?: string
           volume_ml?: number | null
@@ -80,7 +78,6 @@ export type Database = {
           image_url?: string | null
           organization_id?: string
           product_name?: string
-          retail_price_range?: string | null
           style_name?: string
           updated_at?: string
           volume_ml?: number | null

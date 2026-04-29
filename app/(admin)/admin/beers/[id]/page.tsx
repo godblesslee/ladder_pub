@@ -91,12 +91,6 @@ export default async function AdminBeerDetailPage({
               {mapCountryCodeLabel(beer.countryCode)}
             </p>
           </div>
-          {beer.retailPriceRange && (
-            <div>
-              <p className="text-xs text-muted">价格区间</p>
-              <p className="mt-1 text-base font-medium text-foreground">{beer.retailPriceRange}</p>
-            </div>
-          )}
         </div>
 
         {beer.imageUrl && (

@@ -41,7 +41,6 @@ export type MyBeerReviewItem = {
   styleName: string;
   abv: number | null;
   countryCode: string | null;
-  retailPriceRange: string | null;
   eventTitle: string;
   eventSlug: string | null;
   eventBeerId: string;
@@ -217,28 +216,6 @@ const myBeerReviewSelect = `
     product_name,
     style_name,
     abv,
-    country_code,
-    retail_price_range
-  )
-`;
-
-const myBeerReviewSelectWithoutPriceRange = `
-  id,
-  event_beer_id,
-  total_score,
-  public_note,
-  status,
-  submitted_at,
-  updated_at,
-  events (
-    title,
-    slug
-  ),
-  beers (
-    brewery_name,
-    product_name,
-    style_name,
-    abv,
     country_code
   )
 `;
@@ -258,7 +235,6 @@ type MyBeerReviewRow = {
     style_name: string;
     abv: number | null;
     country_code: string | null;
-    retail_price_range?: string | null;
   } | null;
 };
 
@@ -274,7 +250,6 @@ function mapMyBeerReviews(data: MyBeerReviewRow[]): MyBeerReviewItem[] {
       styleName: beer?.style_name ?? "风格待定",
       abv: beer?.abv ?? null,
       countryCode: beer?.country_code ?? null,
-      retailPriceRange: beer?.retail_price_range ?? null,
       eventTitle: event?.title ?? "未命名活动",
       eventSlug: event?.slug ?? null,
       eventBeerId: review.event_beer_id,
@@ -290,33 +265,17 @@ export async function getMyBeerReviews(userId?: string): Promise<MyBeerReviewIte
   const targetUserId = userId ?? DEMO_PROFILE_ID;
   try {
     const supabase = createAdminClient();
-    const query = () =>
-      supabase
+    const { data, error } = await supabase
         .from("reviews")
         .select(myBeerReviewSelect)
         .eq("user_id", targetUserId)
         .order("updated_at", { ascending: false });
 
-    const fallbackQuery = () =>
-      supabase
-        .from("reviews")
-        .select(myBeerReviewSelectWithoutPriceRange)
-        .eq("user_id", targetUserId)
-        .order("updated_at", { ascending: false });
-
-    const { data, error } = await query();
-
-    if (!error && data) {
-      return mapMyBeerReviews(data);
-    }
-
-    const fallback = await fallbackQuery();
-
-    if (fallback.error || !fallback.data) {
+    if (error || !data) {
       return [];
     }
 
-    return mapMyBeerReviews(fallback.data);
+    return mapMyBeerReviews(data);
   } catch {
     return [];
   }

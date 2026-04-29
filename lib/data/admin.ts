@@ -30,7 +30,6 @@ export type AdminBeerListItem = {
   abv: number | null;
   volumeMl: number | null;
   countryCode: string | null;
-  retailPriceRange: string | null;
   updatedAtLabel: string;
 };
 
@@ -90,7 +89,6 @@ export type AdminBeerOption = {
   styleName: string;
   abv: number | null;
   countryCode: string | null;
-  retailPriceRange: string | null;
 };
 
 export type AdminAssignedBeer = {
@@ -127,7 +125,6 @@ export type AdminBeerEditorData = {
     abv: string;
     volumeMl: string;
     countryCode: string;
-    retailPriceRange: string;
     imageUrl: string;
     description: string;
   } | null;
@@ -285,7 +282,7 @@ export async function getAdminBeers(): Promise<AdminBeerListItem[]> {
   const { data, error } = await supabase
     .from("beers")
     .select(
-      "id, brewery_name, product_name, style_name, abv, volume_ml, country_code, retail_price_range, updated_at",
+      "id, brewery_name, product_name, style_name, abv, volume_ml, country_code, updated_at",
     )
     .eq("organization_id", DEFAULT_ORGANIZATION_ID)
     .order("updated_at", { ascending: false });
@@ -302,7 +299,6 @@ export async function getAdminBeers(): Promise<AdminBeerListItem[]> {
     abv: beer.abv,
     volumeMl: beer.volume_ml,
     countryCode: beer.country_code,
-    retailPriceRange: beer.retail_price_range,
     updatedAtLabel: formatDateTimeLabel(beer.updated_at),
   }));
 }
@@ -328,7 +324,7 @@ export async function getAdminEventEditorData(
       .order("created_at", { ascending: false }),
     supabase
       .from("beers")
-      .select("id, brewery_name, product_name, style_name, abv, country_code, retail_price_range")
+      .select("id, brewery_name, product_name, style_name, abv, country_code")
       .eq("organization_id", DEFAULT_ORGANIZATION_ID)
       .order("brewery_name", { ascending: true }),
     eventId
@@ -387,7 +383,6 @@ export async function getAdminEventEditorData(
       styleName: beer.style_name,
       abv: beer.abv,
       countryCode: beer.country_code,
-      retailPriceRange: beer.retail_price_range,
     })) ?? [];
 
   if (!eventResult.data) {
@@ -443,7 +438,6 @@ export async function getAdminBeerEditorData(
         abv,
         volume_ml,
         country_code,
-        retail_price_range,
         image_url,
         description
       `,
@@ -464,7 +458,6 @@ export async function getAdminBeerEditorData(
       abv: data.abv === null ? "" : String(data.abv),
       volumeMl: data.volume_ml === null ? "" : String(data.volume_ml),
       countryCode: data.country_code ?? "",
-      retailPriceRange: data.retail_price_range ?? "",
       imageUrl: data.image_url ?? "",
       description: data.description ?? "",
     },
@@ -480,7 +473,6 @@ export type AdminBeerDetailData = {
     abv: string | null;
     volumeMl: string | null;
     countryCode: string | null;
-    retailPriceRange: string | null;
     imageUrl: string | null;
     description: string | null;
   } | null;
@@ -501,7 +493,6 @@ export async function getAdminBeerDetailData(
         abv,
         volume_ml,
         country_code,
-        retail_price_range,
         image_url,
         description
       `,
@@ -522,7 +513,6 @@ export async function getAdminBeerDetailData(
       abv: data.abv !== null ? String(data.abv) : null,
       volumeMl: data.volume_ml !== null ? String(data.volume_ml) : null,
       countryCode: data.country_code,
-      retailPriceRange: data.retail_price_range,
       imageUrl: data.image_url,
       description: data.description,
     },

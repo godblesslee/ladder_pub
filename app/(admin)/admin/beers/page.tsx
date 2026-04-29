@@ -41,7 +41,6 @@ export default async function AdminBeersPage() {
               {beer.abv ? `ABV ${beer.abv}%` : "ABV --"}
               {beer.volumeMl ? ` · ${beer.volumeMl}ml` : ""}
               {beer.countryCode ? ` · ${beer.countryCode}` : ""}
-              {beer.retailPriceRange ? ` · ${beer.retailPriceRange}` : ""}
             </div>
             <div className="text-sm text-muted md:text-right">{beer.updatedAtLabel}</div>
           </Link>

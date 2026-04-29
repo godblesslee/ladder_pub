@@ -57,7 +57,6 @@ export async function saveBeerAction(formData: FormData) {
     abv: toNullableNumber(formData.get("abv")),
     volume_ml: toNullableNumber(formData.get("volumeMl")),
     country_code: toNullableString(formData.get("countryCode")),
-    retail_price_range: toNullableString(formData.get("retailPriceRange")),
     image_url: toNullableString(formData.get("imageUrl")),
     description: toNullableString(formData.get("description")),
     updated_at: new Date().toISOString(),

@@ -12,7 +12,6 @@ type AdminBeerFormProps = {
     abv: string;
     volumeMl: string;
     countryCode: string;
-    retailPriceRange: string;
     imageUrl: string;
     description: string;
   } | null;
@@ -145,21 +144,6 @@ export function AdminBeerForm({ beer }: AdminBeerFormProps) {
               <option value="GB">英国</option>
               <option value="JP">日本</option>
               <option value="NL">荷兰</option>
-            </select>
-          </label>
-          <label className="space-y-2">
-            <span className="text-sm font-medium text-muted-strong">参考零售价格区间</span>
-            <select
-              name="retailPriceRange"
-              defaultValue={beer?.retailPriceRange ?? ""}
-              className="w-full rounded-[18px] border border-white/8 bg-white/[0.04] px-4 py-3 text-sm outline-none"
-            >
-              <option value="">未设置</option>
-              <option value="10-20元">10-20元</option>
-              <option value="20-30元">20-30元</option>
-              <option value="30-50元">30-50元</option>
-              <option value="50-80元">50-80元</option>
-              <option value="80元以上">80元以上</option>
             </select>
           </label>
           <label className="space-y-2 md:col-span-2">

@@ -110,7 +110,6 @@ export function MyBeersTable({ reviews }: MyBeersTableProps) {
   const [breweryFilter, setBreweryFilter] = useState("全部厂牌");
   const [styleFilter, setStyleFilter] = useState("全部种类");
   const [countryFilter, setCountryFilter] = useState("全部国别");
-  const [priceFilter, setPriceFilter] = useState("全部价格");
   const [scoreFilter, setScoreFilter] = useState("全部评分");
   const [favoriteOnly, setFavoriteOnly] = useState(false);
 
@@ -146,17 +145,6 @@ export function MyBeersTable({ reviews }: MyBeersTableProps) {
     ],
     [reviews],
   );
-  const priceOptions = useMemo(
-    () => [
-      "全部价格",
-      ...new Set(
-        reviews
-          .map((review) => review.retailPriceRange)
-          .filter((value): value is string => Boolean(value)),
-      ),
-    ],
-    [reviews],
-  );
   const scoreOptions = useMemo(
     () => ["全部评分", "8分及以上", "6-7分", "5分及以下", "未评分"],
     [],
@@ -187,13 +175,6 @@ export function MyBeersTable({ reviews }: MyBeersTableProps) {
         }
 
         if (
-          priceFilter !== "全部价格" &&
-          (review.retailPriceRange ?? "未设置") !== priceFilter
-        ) {
-          return false;
-        }
-
-        if (
           scoreFilter !== "全部评分" &&
           normalizeScoreBucket(review.totalScore) !== scoreFilter
         ) {
@@ -211,7 +192,6 @@ export function MyBeersTable({ reviews }: MyBeersTableProps) {
       countryFilter,
       favoriteIds,
       favoriteOnly,
-      priceFilter,
       reviews,
       scoreFilter,
       styleFilter,
@@ -221,7 +201,7 @@ export function MyBeersTable({ reviews }: MyBeersTableProps) {
   return (
     <section className="section-card rounded-[30px] px-5 py-5 sm:px-6 sm:py-6">
       <div className="rounded-[24px] border border-white/7 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] p-3.5 sm:p-4">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(5,minmax(0,1fr))_auto] sm:items-end">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(4,minmax(0,1fr))_auto] sm:items-end">
           <FilterSelect
             label="厂牌"
             value={breweryFilter}
@@ -239,12 +219,6 @@ export function MyBeersTable({ reviews }: MyBeersTableProps) {
             value={countryFilter}
             options={countryOptions}
             onChange={setCountryFilter}
-          />
-          <FilterSelect
-            label="价格范围"
-            value={priceFilter}
-            options={priceOptions}
-            onChange={setPriceFilter}
           />
           <FilterSelect
             label="评分"
